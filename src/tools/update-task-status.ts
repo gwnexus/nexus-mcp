@@ -2,11 +2,11 @@
  * update_task_status -- Layer 2 Coordination
  *
  * Updates the status (and optionally priority/assignee) of an existing task.
- * Only the task creator or a project admin/editor can update tasks.
+ * Delegates to POST /api/mcp/tasks (action: update_task_status).
  */
 
 import { z } from 'zod'
-import { getServiceClient } from '../db.js'
+import { nexusPost } from '../nexus-api.js'
 
 export const updateTaskStatusSchema = {
   task_id: z.string().uuid().describe('Task UUID to update'),
@@ -35,81 +35,30 @@ type UpdateTaskStatusArgs = {
 }
 
 export async function updateTaskStatus(args: UpdateTaskStatusArgs) {
-  const db = getServiceClient()
-  const { task_id, status, priority, assignee, user_id } = args
-
-  // Verify task exists
-  const { data: existing, error: fetchError } = await db
-    .from('tasks')
-    .select('id, status, project_id, created_by')
-    .eq('id', task_id)
-    .single()
-
-  if (fetchError || !existing) {
-    return {
-      content: [
-        {
-          type: 'text' as const,
-          text: JSON.stringify({ error: 'Task not found', task_id }, null, 2),
-        },
-      ],
-      isError: true,
-    }
-  }
-
-  // Build the update payload
-  const updates: Record<string, string> = { status }
-  if (priority !== undefined) updates.priority = priority
-  if (assignee !== undefined) updates.assignee = assignee
-
-  const previousStatus = existing.status
-
-  const { error: updateError } = await db
-    .from('tasks')
-    .update(updates)
-    .eq('id', task_id)
-
-  if (updateError) {
-    return {
-      content: [
-        {
-          type: 'text' as const,
-          text: JSON.stringify(
-            { error: 'Failed to update task', detail: updateError.message },
-            null,
-            2,
-          ),
-        },
-      ],
-      isError: true,
-    }
-  }
-
-  // Auto-create a status-change note for audit trail
-  await db.from('task_notes').insert({
-    task_id,
-    actor: user_id,
-    agent_id: args.agent_id ?? null,
-    note: `Status changed from "${previousStatus}" to "${status}"${priority ? `, priority set to "${priority}"` : ''}${assignee ? `, assigned to ${assignee}` : ''}`,
+  const result = await nexusPost('/api/mcp/tasks', {
+    action: 'update_task_status',
+    task_id: args.task_id,
+    status: args.status,
+    priority: args.priority,
+    assignee: args.assignee,
+    agent_id: args.agent_id,
   })
+
+  if (!result.ok) {
+    return {
+      content: [
+        {
+          type: 'text' as const,
+          text: JSON.stringify({ error: result.error }, null, 2),
+        },
+      ],
+      isError: true,
+    }
+  }
 
   return {
     content: [
-      {
-        type: 'text' as const,
-        text: JSON.stringify(
-          {
-            action: 'update_task_status',
-            task_id,
-            previous_status: previousStatus,
-            new_status: status,
-            priority: priority ?? undefined,
-            assignee: assignee ?? undefined,
-          },
-          null,
-          2,
-        ),
-      },
+      { type: 'text' as const, text: JSON.stringify(result.data, null, 2) },
     ],
   }
 }

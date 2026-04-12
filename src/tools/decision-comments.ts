@@ -2,15 +2,11 @@
  * Decision comment tools -- Layer 2 Coordination
  *
  * Provides append-only comment threads for ADR decisions.
- * Comments support both human and agent actors.
- *
- * Tools:
- *   - add_decision_comment: Add a comment to an ADR
- *   - list_decision_comments: Retrieve comments for an ADR
+ * Delegates to POST /api/mcp/governance (actions: add_decision_comment, list_decision_comments).
  */
 
 import { z } from 'zod'
-import { getServiceClient } from '../db.js'
+import { nexusPost } from '../nexus-api.js'
 
 // ---------------------------------------------------------------------------
 // add_decision_comment
@@ -33,53 +29,19 @@ type AddDecisionCommentArgs = {
 }
 
 export async function addDecisionComment(args: AddDecisionCommentArgs) {
-  const db = getServiceClient()
-  const { decision_id, body, agent_id, user_id } = args
+  const result = await nexusPost('/api/mcp/governance', {
+    action: 'add_decision_comment',
+    decision_id: args.decision_id,
+    body: args.body,
+    agent_id: args.agent_id,
+  })
 
-  // Verify the decision exists
-  const { data: decision } = await db
-    .from('decisions')
-    .select('id, title, project_id')
-    .eq('id', decision_id)
-    .single()
-
-  if (!decision) {
+  if (!result.ok) {
     return {
       content: [
         {
           type: 'text' as const,
-          text: JSON.stringify(
-            { error: 'Decision not found', decision_id },
-            null,
-            2,
-          ),
-        },
-      ],
-      isError: true,
-    }
-  }
-
-  const { data: comment, error } = await db
-    .from('decision_comments')
-    .insert({
-      decision_id,
-      author_id: user_id,
-      agent_id: agent_id ?? null,
-      body,
-    })
-    .select()
-    .single()
-
-  if (error || !comment) {
-    return {
-      content: [
-        {
-          type: 'text' as const,
-          text: JSON.stringify(
-            { error: 'Failed to add comment', detail: error?.message },
-            null,
-            2,
-          ),
+          text: JSON.stringify({ error: result.error }, null, 2),
         },
       ],
       isError: true,
@@ -88,20 +50,7 @@ export async function addDecisionComment(args: AddDecisionCommentArgs) {
 
   return {
     content: [
-      {
-        type: 'text' as const,
-        text: JSON.stringify(
-          {
-            action: 'add_decision_comment',
-            comment_id: comment.id,
-            decision_id,
-            decision_title: decision.title,
-            project_id: decision.project_id,
-          },
-          null,
-          2,
-        ),
-      },
+      { type: 'text' as const, text: JSON.stringify(result.data, null, 2) },
     ],
   }
 }
@@ -127,49 +76,18 @@ type ListDecisionCommentsArgs = {
 }
 
 export async function listDecisionComments(args: ListDecisionCommentsArgs) {
-  const db = getServiceClient()
-  const { decision_id, limit = 50 } = args
+  const result = await nexusPost('/api/mcp/governance', {
+    action: 'list_decision_comments',
+    decision_id: args.decision_id,
+    limit: args.limit ?? 50,
+  })
 
-  // Verify the decision exists
-  const { data: decision } = await db
-    .from('decisions')
-    .select('id, title')
-    .eq('id', decision_id)
-    .single()
-
-  if (!decision) {
+  if (!result.ok) {
     return {
       content: [
         {
           type: 'text' as const,
-          text: JSON.stringify(
-            { error: 'Decision not found', decision_id },
-            null,
-            2,
-          ),
-        },
-      ],
-      isError: true,
-    }
-  }
-
-  const { data: comments, error } = await db
-    .from('decision_comments')
-    .select('id, author_id, agent_id, body, created_at')
-    .eq('decision_id', decision_id)
-    .order('created_at', { ascending: true })
-    .limit(limit)
-
-  if (error) {
-    return {
-      content: [
-        {
-          type: 'text' as const,
-          text: JSON.stringify(
-            { error: 'Failed to list comments', detail: error.message },
-            null,
-            2,
-          ),
+          text: JSON.stringify({ error: result.error }, null, 2),
         },
       ],
       isError: true,
@@ -178,19 +96,7 @@ export async function listDecisionComments(args: ListDecisionCommentsArgs) {
 
   return {
     content: [
-      {
-        type: 'text' as const,
-        text: JSON.stringify(
-          {
-            decision_id,
-            decision_title: decision.title,
-            total: (comments ?? []).length,
-            comments: comments ?? [],
-          },
-          null,
-          2,
-        ),
-      },
+      { type: 'text' as const, text: JSON.stringify(result.data, null, 2) },
     ],
   }
 }

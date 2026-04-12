@@ -2,15 +2,12 @@
  * ingest_document -- Layer 2 Coordination
  *
  * Allows agents to push text/markdown content into a project's
- * knowledge base via the ingest_items table. Content is stored
- * inline (no file upload required).
- *
- * Ingested items start as 'unclassified' and can be classified
- * later through the UI or another tool.
+ * knowledge base via the ingest_items table.
+ * Delegates to POST /api/mcp/documents (action: ingest_document).
  */
 
 import { z } from 'zod'
-import { getServiceClient } from '../db.js'
+import { nexusPost } from '../nexus-api.js'
 
 export const ingestDocumentSchema = {
   project_id: z.string().uuid().describe('Project UUID'),
@@ -37,37 +34,22 @@ type IngestDocumentArgs = {
 }
 
 export async function ingestDocument(args: IngestDocumentArgs) {
-  const db = getServiceClient()
-  const { project_id, title, body, source, source_url, user_id, agent_id } =
-    args
+  const result = await nexusPost('/api/mcp/documents', {
+    action: 'ingest_document',
+    project_id: args.project_id,
+    title: args.title,
+    body: args.body,
+    source: args.source,
+    source_url: args.source_url,
+    agent_id: args.agent_id,
+  })
 
-  const { data: doc, error } = await db
-    .from('ingest_items')
-    .insert({
-      project_id,
-      title,
-      body,
-      source: source ?? (agent_id ? `agent:${agent_id}` : 'mcp'),
-      source_url: source_url ?? null,
-      classification: 'unclassified',
-      created_by: user_id,
-    })
-    .select()
-    .single()
-
-  if (error || !doc) {
+  if (!result.ok) {
     return {
       content: [
         {
           type: 'text' as const,
-          text: JSON.stringify(
-            {
-              error: 'Failed to ingest document',
-              detail: error?.message,
-            },
-            null,
-            2,
-          ),
+          text: JSON.stringify({ error: result.error }, null, 2),
         },
       ],
       isError: true,
@@ -76,22 +58,7 @@ export async function ingestDocument(args: IngestDocumentArgs) {
 
   return {
     content: [
-      {
-        type: 'text' as const,
-        text: JSON.stringify(
-          {
-            action: 'ingest_document',
-            document_id: doc.id,
-            project_id,
-            title,
-            classification: 'unclassified',
-            source: doc.source,
-            body_length: body.length,
-          },
-          null,
-          2,
-        ),
-      },
+      { type: 'text' as const, text: JSON.stringify(result.data, null, 2) },
     ],
   }
 }

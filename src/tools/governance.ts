@@ -4,17 +4,11 @@
  * Manages the ADR lifecycle:
  *   draft -> under_review -> accepted | rejected -> superseded -> archived
  *
- * Tools:
- *   - create_adr_draft: Create a new ADR in draft state
- *   - submit_adr_review: Move ADR from draft to under_review
- *   - record_adr_decision: Accept or reject an ADR under review
- *
- * DB columns: status (not lifecycle_state), decision (not body),
- *             supersedes (not supersedes_id), context, consequences
+ * Delegates to POST /api/mcp/governance.
  */
 
 import { z } from 'zod'
-import { getServiceClient } from '../db.js'
+import { nexusPost } from '../nexus-api.js'
 
 // ---------------------------------------------------------------------------
 // create_adr_draft
@@ -51,59 +45,22 @@ type CreateAdrDraftArgs = {
 }
 
 export async function createAdrDraft(args: CreateAdrDraftArgs) {
-  const db = getServiceClient()
-  const {
-    project_id,
-    title,
-    context,
-    decision,
-    consequences,
-    supersedes,
-    user_id,
-  } = args
+  const result = await nexusPost('/api/mcp/governance', {
+    action: 'create_adr_draft',
+    project_id: args.project_id,
+    title: args.title,
+    context: args.context,
+    decision: args.decision,
+    consequences: args.consequences,
+    supersedes: args.supersedes,
+  })
 
-  // Get the next ADR number for this project
-  const { data: existing } = await db
-    .from('decisions')
-    .select('adr_number')
-    .eq('project_id', project_id)
-    .not('adr_number', 'is', null)
-    .order('adr_number', { ascending: false })
-    .limit(1)
-
-  const lastNumber =
-    existing && existing.length > 0
-      ? parseInt(String(existing[0].adr_number), 10)
-      : 0
-  const nextNumber = (isNaN(lastNumber) ? 0 : lastNumber) + 1
-  const adrNumber = String(nextNumber).padStart(4, '0')
-
-  const { data: adr, error } = await db
-    .from('decisions')
-    .insert({
-      project_id,
-      title,
-      context,
-      decision,
-      consequences: consequences ?? null,
-      adr_number: adrNumber,
-      status: 'draft',
-      supersedes: supersedes ?? null,
-      created_by: user_id,
-    })
-    .select()
-    .single()
-
-  if (error || !adr) {
+  if (!result.ok) {
     return {
       content: [
         {
           type: 'text' as const,
-          text: JSON.stringify(
-            { error: 'Failed to create ADR draft', detail: error?.message },
-            null,
-            2,
-          ),
+          text: JSON.stringify({ error: result.error }, null, 2),
         },
       ],
       isError: true,
@@ -112,21 +69,7 @@ export async function createAdrDraft(args: CreateAdrDraftArgs) {
 
   return {
     content: [
-      {
-        type: 'text' as const,
-        text: JSON.stringify(
-          {
-            action: 'create_adr_draft',
-            adr_id: adr.id,
-            adr_number: adrNumber,
-            project_id,
-            title,
-            status: 'draft',
-          },
-          null,
-          2,
-        ),
-      },
+      { type: 'text' as const, text: JSON.stringify(result.data, null, 2) },
     ],
   }
 }
@@ -145,63 +88,17 @@ type SubmitAdrReviewArgs = {
 }
 
 export async function submitAdrReview(args: SubmitAdrReviewArgs) {
-  const db = getServiceClient()
-  const { adr_id } = args
+  const result = await nexusPost('/api/mcp/governance', {
+    action: 'submit_adr_review',
+    adr_id: args.adr_id,
+  })
 
-  // Verify current state is draft
-  const { data: current } = await db
-    .from('decisions')
-    .select('id, status, title')
-    .eq('id', adr_id)
-    .single()
-
-  if (!current) {
+  if (!result.ok) {
     return {
       content: [
         {
           type: 'text' as const,
-          text: JSON.stringify({ error: 'ADR not found', adr_id }, null, 2),
-        },
-      ],
-      isError: true,
-    }
-  }
-
-  if (current.status !== 'draft') {
-    return {
-      content: [
-        {
-          type: 'text' as const,
-          text: JSON.stringify(
-            {
-              error: 'ADR must be in draft state to submit for review',
-              adr_id,
-              current_state: current.status,
-            },
-            null,
-            2,
-          ),
-        },
-      ],
-      isError: true,
-    }
-  }
-
-  const { error } = await db
-    .from('decisions')
-    .update({ status: 'under_review' })
-    .eq('id', adr_id)
-
-  if (error) {
-    return {
-      content: [
-        {
-          type: 'text' as const,
-          text: JSON.stringify(
-            { error: 'Failed to submit for review', detail: error.message },
-            null,
-            2,
-          ),
+          text: JSON.stringify({ error: result.error }, null, 2),
         },
       ],
       isError: true,
@@ -210,19 +107,7 @@ export async function submitAdrReview(args: SubmitAdrReviewArgs) {
 
   return {
     content: [
-      {
-        type: 'text' as const,
-        text: JSON.stringify(
-          {
-            action: 'submit_adr_review',
-            adr_id,
-            title: current.title,
-            new_state: 'under_review',
-          },
-          null,
-          2,
-        ),
-      },
+      { type: 'text' as const, text: JSON.stringify(result.data, null, 2) },
     ],
   }
 }
@@ -250,110 +135,28 @@ type RecordAdrDecisionArgs = {
 }
 
 export async function recordAdrDecision(args: RecordAdrDecisionArgs) {
-  const db = getServiceClient()
-  const { adr_id, decision, rationale, user_id } = args
+  const result = await nexusPost('/api/mcp/governance', {
+    action: 'record_adr_decision',
+    adr_id: args.adr_id,
+    decision: args.decision,
+    rationale: args.rationale,
+  })
 
-  // Verify current state is under_review
-  const { data: current } = await db
-    .from('decisions')
-    .select('id, status, title, supersedes, decision')
-    .eq('id', adr_id)
-    .single()
-
-  if (!current) {
+  if (!result.ok) {
     return {
       content: [
         {
           type: 'text' as const,
-          text: JSON.stringify({ error: 'ADR not found', adr_id }, null, 2),
+          text: JSON.stringify({ error: result.error }, null, 2),
         },
       ],
       isError: true,
     }
-  }
-
-  if (current.status !== 'under_review') {
-    return {
-      content: [
-        {
-          type: 'text' as const,
-          text: JSON.stringify(
-            {
-              error: 'ADR must be under review to record a decision',
-              adr_id,
-              current_state: current.status,
-            },
-            null,
-            2,
-          ),
-        },
-      ],
-      isError: true,
-    }
-  }
-
-  // Update the ADR
-  const updateData: Record<string, unknown> = {
-    status: decision,
-    reviewed_by: user_id,
-    reviewed_at: new Date().toISOString(),
-  }
-
-  // Append rationale to the decision body if provided
-  if (rationale) {
-    const existingDecision = (current.decision as string) ?? ''
-    updateData.decision =
-      existingDecision + '\n\n## Decision Rationale\n\n' + rationale
-  }
-
-  const { error } = await db
-    .from('decisions')
-    .update(updateData)
-    .eq('id', adr_id)
-
-  if (error) {
-    return {
-      content: [
-        {
-          type: 'text' as const,
-          text: JSON.stringify(
-            { error: 'Failed to record decision', detail: error.message },
-            null,
-            2,
-          ),
-        },
-      ],
-      isError: true,
-    }
-  }
-
-  // If accepted and supersedes another ADR, mark the superseded one
-  if (decision === 'accepted' && current.supersedes) {
-    await db
-      .from('decisions')
-      .update({ status: 'superseded' })
-      .eq('id', current.supersedes)
   }
 
   return {
     content: [
-      {
-        type: 'text' as const,
-        text: JSON.stringify(
-          {
-            action: 'record_adr_decision',
-            adr_id,
-            title: current.title,
-            decision,
-            new_state: decision,
-            ...(current.supersedes
-              ? { superseded_adr: current.supersedes }
-              : {}),
-          },
-          null,
-          2,
-        ),
-      },
+      { type: 'text' as const, text: JSON.stringify(result.data, null, 2) },
     ],
   }
 }

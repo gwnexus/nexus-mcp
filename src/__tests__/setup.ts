@@ -1,15 +1,13 @@
 /**
  * Global test setup for MCP server tests.
  *
- * Mocks the Supabase service client so tests run without
- * a real database connection.
+ * Sets environment variables needed for the Nexus API client.
  */
 
 import { vi } from 'vitest'
 
-// Mock environment variables
-process.env.SUPABASE_URL = 'https://test.supabase.co'
-process.env.SUPABASE_SERVICE_ROLE_KEY = 'test-service-role-key'
+// Mock environment variables for Nexus API client
+process.env.NEXUS_API_URL = 'https://test.nexus.example.com'
 process.env.NEXUS_PRIVATE_TOKEN =
   'nxs_pat_test-token-for-unit-tests-1234567890abc'
 

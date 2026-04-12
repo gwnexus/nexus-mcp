@@ -1,6 +1,6 @@
 {
   "name": "nexus-mcp",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "MCP server for the mpowr-nexus platform",
   "type": "module",
   "main": "dist/server.js",
@@ -17,7 +17,6 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.29.0",
-    "@supabase/supabase-js": "^2.103.0",
     "zod": "^4.3.6"
   },
   "devDependencies": {

@@ -3,10 +3,11 @@
  *
  * Appends a note to an existing task. Notes are append-only and
  * maintain a chronological history/timeline.
+ * Delegates to POST /api/mcp/tasks (action: add_task_note).
  */
 
 import { z } from 'zod'
-import { getServiceClient } from '../db.js'
+import { nexusPost } from '../nexus-api.js'
 
 export const addTaskNoteSchema = {
   task_id: z.string().uuid().describe('Task UUID to add a note to'),
@@ -22,50 +23,19 @@ type AddTaskNoteArgs = {
 }
 
 export async function addTaskNote(args: AddTaskNoteArgs) {
-  const db = getServiceClient()
-  const { task_id, note, user_id, agent_id } = args
+  const result = await nexusPost('/api/mcp/tasks', {
+    action: 'add_task_note',
+    task_id: args.task_id,
+    note: args.note,
+    agent_id: args.agent_id,
+  })
 
-  // Verify task exists
-  const { data: existing, error: fetchError } = await db
-    .from('tasks')
-    .select('id, project_id')
-    .eq('id', task_id)
-    .single()
-
-  if (fetchError || !existing) {
+  if (!result.ok) {
     return {
       content: [
         {
           type: 'text' as const,
-          text: JSON.stringify({ error: 'Task not found', task_id }, null, 2),
-        },
-      ],
-      isError: true,
-    }
-  }
-
-  // Insert the note
-  const { data: taskNote, error: insertError } = await db
-    .from('task_notes')
-    .insert({
-      task_id,
-      actor: user_id,
-      agent_id: agent_id ?? null,
-      note,
-    })
-    .select()
-    .single()
-
-  if (insertError || !taskNote) {
-    return {
-      content: [
-        {
-          type: 'text' as const,
-          text: JSON.stringify(
-            { error: 'Failed to add task note', detail: insertError?.message },
-            null,
-            2,
-          ),
+          text: JSON.stringify({ error: result.error }, null, 2),
         },
       ],
       isError: true,
@@ -74,19 +44,7 @@ export async function addTaskNote(args: AddTaskNoteArgs) {
 
   return {
     content: [
-      {
-        type: 'text' as const,
-        text: JSON.stringify(
-          {
-            action: 'add_task_note',
-            note_id: taskNote.id,
-            task_id,
-            agent_id: agent_id ?? undefined,
-          },
-          null,
-          2,
-        ),
-      },
+      { type: 'text' as const, text: JSON.stringify(result.data, null, 2) },
     ],
   }
 }

@@ -1,80 +1,20 @@
 /**
- * Tests for src/mcp/auth.ts
+ * Tests for src/auth.ts
  *
  * Covers:
  * - initIdentity() with valid/invalid tokens
  * - getIdentity() before/after init
- * - validateProjectAgent()
- * - checkProjectAccess()
  */
 
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-// Mock db module before importing auth
-vi.mock('../db.js', () => ({
-  getServiceClient: vi.fn(),
+// Mock the nexus-api module before importing auth
+vi.mock('../nexus-api.js', () => ({
+  nexusGet: vi.fn(),
 }))
 
-import { getServiceClient } from '../db.js'
+import { nexusGet } from '../nexus-api.js'
 import { TEST_IDS } from './helpers'
-
-// We need to re-import auth fresh for each test to reset module state
-// Use dynamic import pattern
-
-function createMockDbClient(overrides: {
-  keyRow?: Record<string, unknown> | null
-  keyError?: { message: string } | null
-  profile?: { display_name: string } | null
-  authUser?: Record<string, unknown> | null
-}) {
-  const chainResult = (data: unknown, error: unknown = null) => {
-    const chain: Record<string, unknown> = {}
-    chain.select = vi.fn().mockReturnValue(chain)
-    chain.eq = vi.fn().mockReturnValue(chain)
-    chain.single = vi.fn().mockReturnValue({ data, error })
-    chain.update = vi.fn().mockReturnValue(chain)
-    return chain
-  }
-
-  return {
-    from: vi.fn((table: string) => {
-      if (table === 'api_keys') {
-        const chain = chainResult(
-          overrides.keyRow ?? null,
-          overrides.keyError ?? null,
-        )
-        // Also need update chain for last_used_at
-        const updateChain: Record<string, unknown> = {}
-        updateChain.eq = vi.fn().mockReturnValue({ data: null, error: null })
-        chain.update = vi.fn().mockReturnValue(updateChain)
-        return chain
-      }
-      if (table === 'profiles') {
-        return chainResult(overrides.profile ?? null)
-      }
-      if (table === 'project_agents') {
-        return chainResult(null)
-      }
-      if (table === 'project_memberships') {
-        return chainResult(null)
-      }
-      return chainResult(null)
-    }),
-    auth: {
-      admin: {
-        getUserById: vi.fn().mockResolvedValue({
-          data: {
-            user: overrides.authUser ?? {
-              id: TEST_IDS.userId,
-              email: 'test@example.com',
-              app_metadata: { platform_role: 'platform_admin' },
-            },
-          },
-        }),
-      },
-    },
-  }
-}
 
 describe('MCP Auth', () => {
   beforeEach(() => {
@@ -86,22 +26,22 @@ describe('MCP Auth', () => {
 
   describe('initIdentity', () => {
     it('should resolve identity from a valid token', async () => {
-      const mockClient = createMockDbClient({
-        keyRow: {
-          id: 'key-1',
-          user_id: TEST_IDS.userId,
-          expires_at: null,
-          revoked_at: null,
-        },
-        profile: { display_name: 'Test User' },
-        authUser: {
-          id: TEST_IDS.userId,
+      vi.mocked(nexusGet).mockResolvedValue({
+        ok: true,
+        status: 200,
+        data: {
+          userId: TEST_IDS.userId,
           email: 'test@example.com',
-          app_metadata: { platform_role: 'platform_admin' },
+          displayName: 'Test User',
+          isPlatformAdmin: true,
+          isPlatformOwner: false,
+          tenantId: TEST_IDS.tenantId,
+          memberships: [],
+          agentAssignments: [],
         },
+        error: null,
       })
 
-      vi.mocked(getServiceClient).mockReturnValue(mockClient as never)
       process.env.NEXUS_PRIVATE_TOKEN =
         'nxs_pat_valid-test-token-1234567890abcde'
 
@@ -125,103 +65,55 @@ describe('MCP Auth', () => {
       )
     })
 
-    it('should throw if token does not start with nxs_pat_', async () => {
-      const mockClient = createMockDbClient({ keyRow: null })
-      vi.mocked(getServiceClient).mockReturnValue(mockClient as never)
-      process.env.NEXUS_PRIVATE_TOKEN = 'invalid_prefix_token'
-
-      const { initIdentity } = await import('../auth.js')
-      await expect(initIdentity()).rejects.toThrow('could not be resolved')
-    })
-
-    it('should throw if token is not found in api_keys', async () => {
-      const mockClient = createMockDbClient({
-        keyRow: null,
-        keyError: { message: 'not found' },
-      })
-      vi.mocked(getServiceClient).mockReturnValue(mockClient as never)
-      process.env.NEXUS_PRIVATE_TOKEN = 'nxs_pat_unknown-token-12345678901234'
-
-      const { initIdentity } = await import('../auth.js')
-      await expect(initIdentity()).rejects.toThrow('could not be resolved')
-    })
-
-    it('should throw if token is revoked', async () => {
-      const mockClient = createMockDbClient({
-        keyRow: {
-          id: 'key-1',
-          user_id: TEST_IDS.userId,
-          expires_at: null,
-          revoked_at: '2026-01-01T00:00:00Z',
-        },
-      })
-      vi.mocked(getServiceClient).mockReturnValue(mockClient as never)
-      process.env.NEXUS_PRIVATE_TOKEN = 'nxs_pat_revoked-token-12345678901234'
-
-      const { initIdentity } = await import('../auth.js')
-      await expect(initIdentity()).rejects.toThrow('could not be resolved')
-    })
-
-    it('should throw if token is expired', async () => {
-      const mockClient = createMockDbClient({
-        keyRow: {
-          id: 'key-1',
-          user_id: TEST_IDS.userId,
-          expires_at: '2020-01-01T00:00:00Z',
-          revoked_at: null,
-        },
-      })
-      vi.mocked(getServiceClient).mockReturnValue(mockClient as never)
-      process.env.NEXUS_PRIVATE_TOKEN = 'nxs_pat_expired-token-12345678901234'
-
-      const { initIdentity } = await import('../auth.js')
-      await expect(initIdentity()).rejects.toThrow('could not be resolved')
-    })
-
-    it('should resolve non-admin identity correctly', async () => {
-      const mockClient = createMockDbClient({
-        keyRow: {
-          id: 'key-1',
-          user_id: TEST_IDS.userId,
-          expires_at: null,
-          revoked_at: null,
-        },
-        profile: { display_name: 'Regular User' },
-        authUser: {
-          id: TEST_IDS.userId,
-          email: 'regular@example.com',
-          app_metadata: { platform_role: 'user' },
-        },
+    it('should throw if API returns an error', async () => {
+      vi.mocked(nexusGet).mockResolvedValue({
+        ok: false,
+        status: 401,
+        data: null,
+        error: 'Invalid token',
       })
 
-      vi.mocked(getServiceClient).mockReturnValue(mockClient as never)
-      process.env.NEXUS_PRIVATE_TOKEN = 'nxs_pat_regular-user-token-123456789'
+      process.env.NEXUS_PRIVATE_TOKEN = 'nxs_pat_invalid-token-123456789012345'
 
       const { initIdentity } = await import('../auth.js')
-      const identity = await initIdentity()
+      await expect(initIdentity()).rejects.toThrow(
+        'Identity resolution failed',
+      )
+    })
 
-      expect(identity.isPlatformAdmin).toBe(false)
-      expect(identity.isPlatformOwner).toBe(false)
-      expect(identity.displayName).toBe('Regular User')
+    it('should throw if API returns null data', async () => {
+      vi.mocked(nexusGet).mockResolvedValue({
+        ok: true,
+        status: 200,
+        data: null,
+        error: null,
+      })
+
+      process.env.NEXUS_PRIVATE_TOKEN = 'nxs_pat_null-data-token-12345678901234'
+
+      const { initIdentity } = await import('../auth.js')
+      await expect(initIdentity()).rejects.toThrow(
+        'Identity resolution failed',
+      )
     })
 
     it('should resolve platform_owner identity with both admin and owner flags', async () => {
-      const mockClient = createMockDbClient({
-        keyRow: {
-          id: 'key-1',
-          user_id: TEST_IDS.userId,
-          expires_at: null,
-          revoked_at: null,
-        },
-        profile: { display_name: 'Platform Owner' },
-        authUser: {
-          id: TEST_IDS.userId,
+      vi.mocked(nexusGet).mockResolvedValue({
+        ok: true,
+        status: 200,
+        data: {
+          userId: TEST_IDS.userId,
           email: 'owner@example.com',
-          app_metadata: { platform_role: 'platform_owner' },
+          displayName: 'Platform Owner',
+          isPlatformAdmin: true,
+          isPlatformOwner: true,
+          tenantId: TEST_IDS.tenantId,
+          memberships: [],
+          agentAssignments: [],
         },
+        error: null,
       })
 
-      vi.mocked(getServiceClient).mockReturnValue(mockClient as never)
       process.env.NEXUS_PRIVATE_TOKEN = 'nxs_pat_owner-test-token-12345678901'
 
       const { initIdentity } = await import('../auth.js')
@@ -241,17 +133,22 @@ describe('MCP Auth', () => {
     })
 
     it('should return cached identity after init', async () => {
-      const mockClient = createMockDbClient({
-        keyRow: {
-          id: 'key-1',
-          user_id: TEST_IDS.userId,
-          expires_at: null,
-          revoked_at: null,
+      vi.mocked(nexusGet).mockResolvedValue({
+        ok: true,
+        status: 200,
+        data: {
+          userId: TEST_IDS.userId,
+          email: 'cached@example.com',
+          displayName: 'Cached User',
+          isPlatformAdmin: false,
+          isPlatformOwner: false,
+          tenantId: TEST_IDS.tenantId,
+          memberships: [],
+          agentAssignments: [],
         },
-        profile: { display_name: 'Cached User' },
+        error: null,
       })
 
-      vi.mocked(getServiceClient).mockReturnValue(mockClient as never)
       process.env.NEXUS_PRIVATE_TOKEN = 'nxs_pat_cached-test-token-1234567890'
 
       const { initIdentity, getIdentity } = await import('../auth.js')

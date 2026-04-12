@@ -4,34 +4,23 @@
  * - get_project_memory
  * - get_document
  * - get_related_entities
+ *
+ * All tools now delegate to the Nexus API via nexusPost().
+ * Tests mock the nexus-api module.
  */
 
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { parseToolResponse, TEST_IDS } from './helpers'
+import { mockApiError, mockApiSuccess, parseToolResponse, TEST_IDS } from './helpers'
 
-vi.mock('../db.js', () => ({
-  getServiceClient: vi.fn(),
+vi.mock('../nexus-api.js', () => ({
+  nexusPost: vi.fn(),
 }))
 
-import { getServiceClient } from '../db.js'
+import { nexusPost } from '../nexus-api.js'
 
-function mockChain(result: { data: unknown; error: unknown }) {
-  const chain: Record<string, unknown> = {}
-  chain.select = vi.fn().mockReturnValue(chain)
-  chain.eq = vi.fn().mockReturnValue(chain)
-  chain.neq = vi.fn().mockReturnValue(chain)
-  chain.not = vi.fn().mockReturnValue(chain)
-  chain.in = vi.fn().mockReturnValue(chain)
-  chain.or = vi.fn().mockReturnValue(chain)
-  chain.ilike = vi.fn().mockReturnValue(chain)
-  chain.order = vi.fn().mockReturnValue(chain)
-  chain.limit = vi.fn().mockReturnValue(chain)
-  chain.single = vi.fn().mockReturnValue(result)
-  chain.maybeSingle = vi.fn().mockReturnValue(result)
-  chain.textSearch = vi.fn().mockReturnValue(chain)
-  Object.assign(chain, result)
-  return chain
-}
+// ---------------------------------------------------------------------------
+// search_knowledge
+// ---------------------------------------------------------------------------
 
 describe('Layer 1: search_knowledge', () => {
   beforeEach(() => {
@@ -39,25 +28,19 @@ describe('Layer 1: search_knowledge', () => {
   })
 
   it('should return matching results for keyword search', async () => {
-    const fromFn = vi.fn((table: string) => {
-      if (table === 'tasks') {
-        return mockChain({
-          data: [
-            {
-              id: TEST_IDS.taskId,
-              title: 'Fix authentication bug',
-              description: 'The auth flow has a bug in login',
-              status: 'open',
-              created_at: '2026-04-12T00:00:00Z',
-            },
-          ],
-          error: null,
-        })
-      }
-      // Other tables return empty
-      return mockChain({ data: [], error: null })
-    })
-    vi.mocked(getServiceClient).mockReturnValue({ from: fromFn } as never)
+    vi.mocked(nexusPost).mockResolvedValue(
+      mockApiSuccess({
+        total_results: 1,
+        results: [
+          {
+            entity_type: 'task',
+            entity_id: TEST_IDS.taskId,
+            title: 'Fix authentication bug',
+            relevance: 'exact',
+          },
+        ],
+      }),
+    )
 
     const { searchKnowledge } = await import('../tools/search-knowledge.js')
     const result = await searchKnowledge({
@@ -66,16 +49,17 @@ describe('Layer 1: search_knowledge', () => {
       entity_types: ['task'],
     })
 
-    expect('isError' in result).toBe(false)
+    expect(result.isError).toBeUndefined()
     const parsed = parseToolResponse(result)
-    expect(parsed.total_results).toBeGreaterThan(0)
+    expect(parsed.total_results).toBe(1)
     expect(parsed.results[0].entity_type).toBe('task')
     expect(parsed.results[0].entity_id).toBe(TEST_IDS.taskId)
   })
 
   it('should return empty results when no matches', async () => {
-    const fromFn = vi.fn(() => mockChain({ data: [], error: null }))
-    vi.mocked(getServiceClient).mockReturnValue({ from: fromFn } as never)
+    vi.mocked(nexusPost).mockResolvedValue(
+      mockApiSuccess({ total_results: 0, results: [] }),
+    )
 
     const { searchKnowledge } = await import('../tools/search-knowledge.js')
     const result = await searchKnowledge({
@@ -88,77 +72,31 @@ describe('Layer 1: search_knowledge', () => {
     expect(parsed.results).toEqual([])
   })
 
-  it('should search all entity types when none specified', async () => {
-    const calledTables: string[] = []
-    const fromFn = vi.fn((table: string) => {
-      calledTables.push(table)
-      return mockChain({ data: [], error: null })
-    })
-    vi.mocked(getServiceClient).mockReturnValue({ from: fromFn } as never)
+  it('should pass correct parameters to the API', async () => {
+    vi.mocked(nexusPost).mockResolvedValue(
+      mockApiSuccess({ total_results: 0, results: [] }),
+    )
 
     const { searchKnowledge } = await import('../tools/search-knowledge.js')
     await searchKnowledge({
       query: 'test',
       project_id: TEST_IDS.projectId,
+      entity_types: ['task', 'decision'],
+      search_mode: 'hybrid',
+      limit: 5,
     })
 
-    // Should search all 7 entity tables
-    expect(calledTables).toContain('sessions')
-    expect(calledTables).toContain('decisions')
-    expect(calledTables).toContain('letters')
-    expect(calledTables).toContain('tasks')
-    expect(calledTables).toContain('research_notes')
-    expect(calledTables).toContain('planning_items')
-    expect(calledTables).toContain('ingest_items')
-  })
-
-  it('should rank exact matches above partial matches', async () => {
-    const fromFn = vi.fn((table: string) => {
-      if (table === 'tasks') {
-        return mockChain({
-          data: [
-            {
-              id: 'task-partial',
-              title: 'Fix the auth',
-              description: 'Partial match',
-              status: 'open',
-              created_at: '2026-04-12T00:00:00Z',
-            },
-            {
-              id: 'task-exact',
-              title: 'Fix the auth flow',
-              description: 'Exact match on both terms',
-              status: 'open',
-              created_at: '2026-04-11T00:00:00Z',
-            },
-          ],
-          error: null,
-        })
-      }
-      return mockChain({ data: [], error: null })
-    })
-    vi.mocked(getServiceClient).mockReturnValue({ from: fromFn } as never)
-
-    const { searchKnowledge } = await import('../tools/search-knowledge.js')
-    const result = await searchKnowledge({
-      query: 'auth flow',
+    expect(nexusPost).toHaveBeenCalledWith('/api/mcp/search', {
       project_id: TEST_IDS.projectId,
-      entity_types: ['task'],
+      query: 'test',
+      entity_types: ['task', 'decision'],
+      search_mode: 'hybrid',
+      limit: 5,
     })
-
-    const parsed = parseToolResponse(result)
-    expect(parsed.total_results).toBe(2)
-    // Exact match should come first
-    expect(parsed.results[0].entity_id).toBe('task-exact')
-    expect(parsed.results[0].relevance).toBe('exact')
-    expect(parsed.results[1].relevance).toBe('partial')
   })
 
-  it('should handle DB errors gracefully', async () => {
-    const fromFn = vi.fn(() =>
-      mockChain({ data: null, error: { message: 'connection lost' } }),
-    )
-    vi.mocked(getServiceClient).mockReturnValue({ from: fromFn } as never)
+  it('should handle API errors gracefully', async () => {
+    vi.mocked(nexusPost).mockResolvedValue(mockApiError('connection lost'))
 
     const { searchKnowledge } = await import('../tools/search-knowledge.js')
     const result = await searchKnowledge({
@@ -166,11 +104,15 @@ describe('Layer 1: search_knowledge', () => {
       project_id: TEST_IDS.projectId,
     })
 
-    // Should not throw, just return empty results
+    expect(result.isError).toBe(true)
     const parsed = parseToolResponse(result)
-    expect(parsed.total_results).toBe(0)
+    expect(parsed.error).toBe('connection lost')
   })
 })
+
+// ---------------------------------------------------------------------------
+// get_project_memory
+// ---------------------------------------------------------------------------
 
 describe('Layer 1: get_project_memory', () => {
   beforeEach(() => {
@@ -178,28 +120,18 @@ describe('Layer 1: get_project_memory', () => {
   })
 
   it('should return curated project context', async () => {
-    const fromFn = vi.fn((table: string) => {
-      if (table === 'decisions') {
-        return mockChain({
-          data: [
-            {
-              id: TEST_IDS.adrId,
-              title: 'ADR-001',
-              lifecycle_state: 'accepted',
-            },
-          ],
-          error: null,
-        })
-      }
-      if (table === 'tasks') {
-        return mockChain({
-          data: [{ id: TEST_IDS.taskId, title: 'Open task', status: 'open' }],
-          error: null,
-        })
-      }
-      return mockChain({ data: [], error: null })
-    })
-    vi.mocked(getServiceClient).mockReturnValue({ from: fromFn } as never)
+    vi.mocked(nexusPost).mockResolvedValue(
+      mockApiSuccess({
+        project_id: TEST_IDS.projectId,
+        depth: 'standard',
+        categories_included: ['adrs', 'active_tasks'],
+        memory: {
+          project: { id: TEST_IDS.projectId, name: 'Test Project' },
+          adrs: [{ id: TEST_IDS.adrId, title: 'ADR-001', status: 'accepted' }],
+          active_tasks: [{ id: TEST_IDS.taskId, title: 'Open task', status: 'open' }],
+        },
+      }),
+    )
 
     const { getProjectMemory } = await import('../tools/get-project-memory.js')
     const result = await getProjectMemory({
@@ -210,58 +142,60 @@ describe('Layer 1: get_project_memory', () => {
     expect(result.isError).toBeUndefined()
     const parsed = parseToolResponse(result)
     expect(parsed.project_id).toBe(TEST_IDS.projectId)
+    expect(parsed.memory.adrs).toHaveLength(1)
+    expect(parsed.memory.active_tasks).toHaveLength(1)
   })
 
-  it('should respect depth parameter', async () => {
-    const fromFn = vi.fn(() => mockChain({ data: [], error: null }))
-    vi.mocked(getServiceClient).mockReturnValue({ from: fromFn } as never)
+  it('should pass depth parameter to the API', async () => {
+    vi.mocked(nexusPost).mockResolvedValue(
+      mockApiSuccess({ project_id: TEST_IDS.projectId, depth: 'light', memory: {} }),
+    )
 
     const { getProjectMemory } = await import('../tools/get-project-memory.js')
-    const result = await getProjectMemory({
+    await getProjectMemory({
       project_id: TEST_IDS.projectId,
       include: ['adrs'],
       depth: 'light',
     })
 
-    expect(result.isError).toBeUndefined()
+    expect(nexusPost).toHaveBeenCalledWith('/api/mcp/memory', {
+      project_id: TEST_IDS.projectId,
+      include: ['adrs'],
+      depth: 'light',
+    })
+  })
+
+  it('should handle API errors', async () => {
+    vi.mocked(nexusPost).mockResolvedValue(mockApiError('Project not found'))
+
+    const { getProjectMemory } = await import('../tools/get-project-memory.js')
+    const result = await getProjectMemory({
+      project_id: TEST_IDS.projectId,
+      include: ['adrs'],
+    })
+
+    expect(result.isError).toBe(true)
   })
 })
+
+// ---------------------------------------------------------------------------
+// get_document
+// ---------------------------------------------------------------------------
 
 describe('Layer 1: get_document', () => {
   beforeEach(() => {
     vi.restoreAllMocks()
   })
 
-  it('should fetch a session with child entries', async () => {
-    const fromFn = vi.fn((table: string) => {
-      if (table === 'sessions') {
-        return mockChain({
-          data: {
-            id: TEST_IDS.sessionId,
-            title: 'Test Session',
-            status: 'open',
-            summary: 'Session summary',
-            created_at: '2026-04-12T00:00:00Z',
-          },
-          error: null,
-        })
-      }
-      if (table === 'session_entries') {
-        return mockChain({
-          data: [
-            {
-              id: TEST_IDS.entryId,
-              entry_type: 'note',
-              summary: 'A note',
-              created_at: '2026-04-12T01:00:00Z',
-            },
-          ],
-          error: null,
-        })
-      }
-      return mockChain({ data: null, error: null })
-    })
-    vi.mocked(getServiceClient).mockReturnValue({ from: fromFn } as never)
+  it('should fetch a document in structured mode', async () => {
+    vi.mocked(nexusPost).mockResolvedValue(
+      mockApiSuccess({
+        entity_type: 'session',
+        entity_id: TEST_IDS.sessionId,
+        document: { id: TEST_IDS.sessionId, title: 'Test Session', status: 'open' },
+        entries: [{ id: TEST_IDS.entryId, entry_type: 'note', summary: 'A note' }],
+      }),
+    )
 
     const { getDocument } = await import('../tools/get-document.js')
     const result = await getDocument({
@@ -275,11 +209,29 @@ describe('Layer 1: get_document', () => {
     expect(parsed.entity_id).toBe(TEST_IDS.sessionId)
   })
 
-  it('should return error for unknown entity not found', async () => {
-    const fromFn = vi.fn(() =>
-      mockChain({ data: null, error: { message: 'not found' } }),
+  it('should fetch a document in markdown mode', async () => {
+    vi.mocked(nexusPost).mockResolvedValue(
+      mockApiSuccess({
+        entity_type: 'decision',
+        entity_id: TEST_IDS.adrId,
+        format: 'markdown',
+        content: '# ADR-001\n\nSome content',
+      }),
     )
-    vi.mocked(getServiceClient).mockReturnValue({ from: fromFn } as never)
+
+    const { getDocument } = await import('../tools/get-document.js')
+    const result = await getDocument({
+      entity_type: 'decision',
+      entity_id: TEST_IDS.adrId,
+      render_mode: 'markdown',
+    })
+
+    expect(result.isError).toBeUndefined()
+    expect(result.content[0].text).toContain('# ADR-001')
+  })
+
+  it('should return error for not found entity', async () => {
+    vi.mocked(nexusPost).mockResolvedValue(mockApiError('Document not found', 404))
 
     const { getDocument } = await import('../tools/get-document.js')
     const result = await getDocument({
@@ -291,59 +243,38 @@ describe('Layer 1: get_document', () => {
   })
 })
 
+// ---------------------------------------------------------------------------
+// get_related_entities
+// ---------------------------------------------------------------------------
+
 describe('Layer 1: get_related_entities', () => {
   beforeEach(() => {
     vi.restoreAllMocks()
   })
 
   it('should return related entities for a session', async () => {
-    let callCount = 0
-    const fromFn = vi.fn((table: string) => {
-      callCount++
-      if (table === 'sessions' && callCount === 1) {
-        // Source entity lookup
-        return mockChain({
-          data: {
-            id: TEST_IDS.sessionId,
-            project_id: TEST_IDS.projectId,
-            created_by: TEST_IDS.userId,
-            created_at: '2026-04-12T00:00:00Z',
+    vi.mocked(nexusPost).mockResolvedValue(
+      mockApiSuccess({
+        source: {
+          entity_type: 'session',
+          entity_id: TEST_IDS.sessionId,
+          project_id: TEST_IDS.projectId,
+        },
+        total_related: 1,
+        related: [
+          {
+            relation: 'task_in_project',
+            entity_type: 'task',
+            entity_id: TEST_IDS.taskId,
+            title: 'Related task',
+            status: 'open',
+            created_at: '2026-04-12',
           },
-          error: null,
-        })
-      }
-      if (table === 'session_entries') {
-        return mockChain({
-          data: [
-            {
-              id: TEST_IDS.entryId,
-              linked_entity_type: 'task',
-              linked_entity_id: TEST_IDS.taskId,
-              entry_type: 'task_created',
-            },
-          ],
-          error: null,
-        })
-      }
-      if (table === 'tasks') {
-        return mockChain({
-          data: [
-            {
-              id: TEST_IDS.taskId,
-              title: 'Related task',
-              status: 'open',
-              created_at: '2026-04-12',
-            },
-          ],
-          error: null,
-        })
-      }
-      return mockChain({ data: [], error: null })
-    })
-    vi.mocked(getServiceClient).mockReturnValue({ from: fromFn } as never)
+        ],
+      }),
+    )
 
-    const { getRelatedEntities } =
-      await import('../tools/get-related-entities.js')
+    const { getRelatedEntities } = await import('../tools/get-related-entities.js')
     const result = await getRelatedEntities({
       entity_type: 'session',
       entity_id: TEST_IDS.sessionId,
@@ -353,5 +284,19 @@ describe('Layer 1: get_related_entities', () => {
     const parsed = parseToolResponse(result)
     expect(parsed.source.entity_type).toBe('session')
     expect(parsed.source.entity_id).toBe(TEST_IDS.sessionId)
+    expect(parsed.total_related).toBe(1)
+    expect(parsed.related[0].entity_type).toBe('task')
+  })
+
+  it('should handle API errors', async () => {
+    vi.mocked(nexusPost).mockResolvedValue(mockApiError('Entity not found', 404))
+
+    const { getRelatedEntities } = await import('../tools/get-related-entities.js')
+    const result = await getRelatedEntities({
+      entity_type: 'session',
+      entity_id: TEST_IDS.sessionId,
+    })
+
+    expect(result.isError).toBe(true)
   })
 })

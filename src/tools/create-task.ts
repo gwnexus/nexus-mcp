@@ -2,10 +2,11 @@
  * create_task -- Layer 2 Coordination
  *
  * Creates a new task within a project scope.
+ * Delegates to POST /api/mcp/tasks (action: create_task).
  */
 
 import { z } from 'zod'
-import { getServiceClient } from '../db.js'
+import { nexusPost } from '../nexus-api.js'
 
 export const createTaskSchema = {
   project_id: z.string().uuid().describe('Project UUID'),
@@ -35,41 +36,22 @@ type CreateTaskArgs = {
 }
 
 export async function createTask(args: CreateTaskArgs) {
-  const db = getServiceClient()
-  const {
-    project_id,
-    title,
-    description,
-    priority = 'normal',
-    assignee,
-    status = 'open',
-    user_id,
-  } = args
+  const result = await nexusPost('/api/mcp/tasks', {
+    action: 'create_task',
+    project_id: args.project_id,
+    title: args.title,
+    description: args.description,
+    priority: args.priority ?? 'normal',
+    assignee: args.assignee,
+    status: args.status ?? 'open',
+  })
 
-  const { data: task, error } = await db
-    .from('tasks')
-    .insert({
-      project_id,
-      title,
-      description: description ?? null,
-      priority,
-      assignee: assignee ?? null,
-      status,
-      created_by: user_id,
-    })
-    .select()
-    .single()
-
-  if (error || !task) {
+  if (!result.ok) {
     return {
       content: [
         {
           type: 'text' as const,
-          text: JSON.stringify(
-            { error: 'Failed to create task', detail: error?.message },
-            null,
-            2,
-          ),
+          text: JSON.stringify({ error: result.error }, null, 2),
         },
       ],
       isError: true,
@@ -78,21 +60,7 @@ export async function createTask(args: CreateTaskArgs) {
 
   return {
     content: [
-      {
-        type: 'text' as const,
-        text: JSON.stringify(
-          {
-            action: 'create_task',
-            task_id: task.id,
-            project_id,
-            title,
-            status,
-            priority,
-          },
-          null,
-          2,
-        ),
-      },
+      { type: 'text' as const, text: JSON.stringify(result.data, null, 2) },
     ],
   }
 }
