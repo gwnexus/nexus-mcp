@@ -1,8 +1,8 @@
 /**
- * list_inbox + list_outbox + acknowledge_letter -- Layer 2 Coordination
+ * vl_inbox + vl_outbox + vl_ack -- Layer 2 Coordination
  *
  * Inbox/outbox polling and acknowledgment for vault letters.
- * Delegates to POST /api/mcp/letters (actions: vl_inbox, vl_outbox, vl_acknowledge).
+ * Delegates to POST /api/mcp/letters (actions: vl_inbox, vl_outbox, vl_ack).
  */
 
 import { z } from 'zod'
@@ -132,7 +132,7 @@ type AcknowledgeLetterArgs = {
 
 export async function acknowledgeLetter(args: AcknowledgeLetterArgs) {
   const result = await nexusPost('/api/mcp/letters', {
-    action: 'vl_acknowledge',
+    action: 'vl_ack',
     letter_id: args.letter_id,
     agent_id: args.agent_id,
   })

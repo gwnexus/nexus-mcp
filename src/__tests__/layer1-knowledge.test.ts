@@ -1,9 +1,9 @@
 /**
  * Tests for Layer 1 Knowledge Access tools:
- * - search_knowledge
- * - get_project_memory
- * - get_document
- * - get_related_entities
+ * - kb_search
+ * - kb_memory
+ * - kb_get
+ * - kb_related
  *
  * All tools now delegate to the Nexus API via nexusPost().
  * Tests mock the nexus-api module.
@@ -19,10 +19,10 @@ vi.mock('../nexus-api.js', () => ({
 import { nexusPost } from '../nexus-api.js'
 
 // ---------------------------------------------------------------------------
-// search_knowledge
+// kb_search
 // ---------------------------------------------------------------------------
 
-describe('Layer 1: search_knowledge', () => {
+describe('Layer 1: kb_search', () => {
   beforeEach(() => {
     vi.restoreAllMocks()
   })
@@ -111,10 +111,10 @@ describe('Layer 1: search_knowledge', () => {
 })
 
 // ---------------------------------------------------------------------------
-// get_project_memory
+// kb_memory
 // ---------------------------------------------------------------------------
 
-describe('Layer 1: get_project_memory', () => {
+describe('Layer 1: kb_memory', () => {
   beforeEach(() => {
     vi.restoreAllMocks()
   })
@@ -179,10 +179,10 @@ describe('Layer 1: get_project_memory', () => {
 })
 
 // ---------------------------------------------------------------------------
-// get_document
+// kb_get
 // ---------------------------------------------------------------------------
 
-describe('Layer 1: get_document', () => {
+describe('Layer 1: kb_get', () => {
   beforeEach(() => {
     vi.restoreAllMocks()
   })
@@ -244,10 +244,10 @@ describe('Layer 1: get_document', () => {
 })
 
 // ---------------------------------------------------------------------------
-// get_related_entities
+// kb_related
 // ---------------------------------------------------------------------------
 
-describe('Layer 1: get_related_entities', () => {
+describe('Layer 1: kb_related', () => {
   beforeEach(() => {
     vi.restoreAllMocks()
   })

@@ -1,5 +1,5 @@
 /**
- * create_letter + reply_letter -- Layer 2 Coordination
+ * vl_create + vl_reply -- Layer 2 Coordination
  *
  * Vault letter management for agent coordination.
  * Delegates to POST /api/mcp/letters (actions: vl_create, vl_reply).

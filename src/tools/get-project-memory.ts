@@ -1,11 +1,11 @@
 /**
- * get_project_memory -- Layer 1 Knowledge Access
+ * kb_memory -- Layer 1 Knowledge Access
  *
  * Returns curated project context for agent bootstrapping.
  * Includes ADRs, active tasks, recent sessions, open letters, etc.
  * Delegates to POST /api/mcp/memory.
  *
- * ADR-0001 spec: get_project_memory(project_id, include[], depth)
+ * ADR-0001 spec: kb_memory(project_id, include[], depth)
  */
 
 import { z } from 'zod'

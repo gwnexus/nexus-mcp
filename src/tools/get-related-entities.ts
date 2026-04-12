@@ -1,10 +1,10 @@
 /**
- * get_related_entities -- Layer 1 Knowledge Access
+ * kb_related -- Layer 1 Knowledge Access
  *
  * Returns graph-neighbor entities related to a given entity.
  * Delegates to POST /api/mcp/related.
  *
- * ADR-0001 spec: get_related_entities(entity_type, entity_id, relation_types[], limit)
+ * ADR-0001 spec: kb_related(entity_type, entity_id, relation_types[], limit)
  */
 
 import { z } from 'zod'

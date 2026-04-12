@@ -2,14 +2,14 @@
  * Decision comment tools -- Layer 2 Coordination
  *
  * Provides append-only comment threads for ADR decisions.
- * Delegates to POST /api/mcp/governance (actions: add_decision_comment, list_decision_comments).
+ * Delegates to POST /api/mcp/governance (actions: dc_add, dc_list).
  */
 
 import { z } from 'zod'
 import { nexusPost } from '../nexus-api.js'
 
 // ---------------------------------------------------------------------------
-// add_decision_comment
+// add_decision_comment -> dc_add
 // ---------------------------------------------------------------------------
 
 export const addDecisionCommentSchema = {
@@ -30,7 +30,7 @@ type AddDecisionCommentArgs = {
 
 export async function addDecisionComment(args: AddDecisionCommentArgs) {
   const result = await nexusPost('/api/mcp/governance', {
-    action: 'add_decision_comment',
+    action: 'dc_add',
     decision_id: args.decision_id,
     body: args.body,
     agent_id: args.agent_id,
@@ -56,7 +56,7 @@ export async function addDecisionComment(args: AddDecisionCommentArgs) {
 }
 
 // ---------------------------------------------------------------------------
-// list_decision_comments
+// list_decision_comments -> dc_list
 // ---------------------------------------------------------------------------
 
 export const listDecisionCommentsSchema = {
@@ -77,7 +77,7 @@ type ListDecisionCommentsArgs = {
 
 export async function listDecisionComments(args: ListDecisionCommentsArgs) {
   const result = await nexusPost('/api/mcp/governance', {
-    action: 'list_decision_comments',
+    action: 'dc_list',
     decision_id: args.decision_id,
     limit: args.limit ?? 50,
   })

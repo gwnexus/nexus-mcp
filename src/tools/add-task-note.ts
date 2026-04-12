@@ -1,9 +1,9 @@
 /**
- * add_task_note -- Layer 2 Coordination
+ * task_note -- Layer 2 Coordination
  *
  * Appends a note to an existing task. Notes are append-only and
  * maintain a chronological history/timeline.
- * Delegates to POST /api/mcp/tasks (action: add_task_note).
+ * Delegates to POST /api/mcp/tasks (action: task_note).
  */
 
 import { z } from 'zod'
@@ -24,7 +24,7 @@ type AddTaskNoteArgs = {
 
 export async function addTaskNote(args: AddTaskNoteArgs) {
   const result = await nexusPost('/api/mcp/tasks', {
-    action: 'add_task_note',
+    action: 'task_note',
     task_id: args.task_id,
     note: args.note,
     agent_id: args.agent_id,

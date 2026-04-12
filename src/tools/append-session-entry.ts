@@ -1,9 +1,9 @@
 /**
- * append_session_entry -- Layer 2 Coordination
+ * session_append -- Layer 2 Coordination
  *
  * Appends an entry to an existing session.
  * Enforces append-only semantics and session write isolation.
- * Delegates to POST /api/mcp/sessions (action: append_entry).
+ * Delegates to POST /api/mcp/sessions (action: session_append).
  */
 
 import { z } from 'zod'
@@ -54,7 +54,7 @@ type AppendSessionEntryArgs = {
 
 export async function appendSessionEntry(args: AppendSessionEntryArgs) {
   const result = await nexusPost('/api/mcp/sessions', {
-    action: 'append_entry',
+    action: 'session_append',
     session_id: args.session_id,
     entry_type: args.entry_type,
     summary: args.summary,

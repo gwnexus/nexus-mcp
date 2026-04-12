@@ -21,7 +21,7 @@ describe('Layer 3: ADR Governance tools', () => {
     it('should create an ADR draft with auto-incremented number', async () => {
       vi.mocked(nexusPost).mockResolvedValue(
         mockApiSuccess({
-          action: 'create_adr_draft',
+          action: 'adr_create',
           adr_id: TEST_IDS.adrId,
           adr_number: '0006',
           project_id: TEST_IDS.projectId,
@@ -41,7 +41,7 @@ describe('Layer 3: ADR Governance tools', () => {
 
       expect(result.isError).toBeUndefined()
       const parsed = parseToolResponse(result)
-      expect(parsed.action).toBe('create_adr_draft')
+      expect(parsed.action).toBe('adr_create')
       expect(parsed.adr_number).toBe('0006')
       expect(parsed.status).toBe('draft')
     })
@@ -66,7 +66,7 @@ describe('Layer 3: ADR Governance tools', () => {
     it('should transition a draft ADR to under_review', async () => {
       vi.mocked(nexusPost).mockResolvedValue(
         mockApiSuccess({
-          action: 'submit_adr_review',
+          action: 'adr_submit',
           adr_id: TEST_IDS.adrId,
           title: 'ADR to review',
           new_state: 'under_review',
@@ -81,7 +81,7 @@ describe('Layer 3: ADR Governance tools', () => {
 
       expect(result.isError).toBeUndefined()
       const parsed = parseToolResponse(result)
-      expect(parsed.action).toBe('submit_adr_review')
+      expect(parsed.action).toBe('adr_submit')
       expect(parsed.new_state).toBe('under_review')
     })
 
@@ -116,7 +116,7 @@ describe('Layer 3: ADR Governance tools', () => {
     it('should accept an ADR under review', async () => {
       vi.mocked(nexusPost).mockResolvedValue(
         mockApiSuccess({
-          action: 'record_adr_decision',
+          action: 'adr_decide',
           adr_id: TEST_IDS.adrId,
           title: 'Test ADR',
           decision: 'accepted',
@@ -133,7 +133,7 @@ describe('Layer 3: ADR Governance tools', () => {
 
       expect(result.isError).toBeUndefined()
       const parsed = parseToolResponse(result)
-      expect(parsed.action).toBe('record_adr_decision')
+      expect(parsed.action).toBe('adr_decide')
       expect(parsed.decision).toBe('accepted')
       expect(parsed.new_state).toBe('accepted')
     })
@@ -141,7 +141,7 @@ describe('Layer 3: ADR Governance tools', () => {
     it('should reject an ADR under review', async () => {
       vi.mocked(nexusPost).mockResolvedValue(
         mockApiSuccess({
-          action: 'record_adr_decision',
+          action: 'adr_decide',
           adr_id: TEST_IDS.adrId,
           title: 'Test ADR',
           decision: 'rejected',
@@ -166,7 +166,7 @@ describe('Layer 3: ADR Governance tools', () => {
       const supersededId = '11111111-1111-1111-1111-111111111111'
       vi.mocked(nexusPost).mockResolvedValue(
         mockApiSuccess({
-          action: 'record_adr_decision',
+          action: 'adr_decide',
           adr_id: TEST_IDS.adrId,
           title: 'Superseding ADR',
           decision: 'accepted',

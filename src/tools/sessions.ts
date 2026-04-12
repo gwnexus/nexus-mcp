@@ -1,9 +1,9 @@
 /**
  * Session lifecycle tools -- Layer 2 Coordination
  *
- * create_session:      Start a new work session for a project
- * close_session:       End a session with summary and next entry point
- * list_open_sessions:  List open sessions for a project
+ * session_create:      Start a new work session for a project
+ * session_close:       End a session with summary and next entry point
+ * session_list:        List open sessions for a project
  *
  * Delegates to POST /api/mcp/sessions.
  */
@@ -12,7 +12,7 @@ import { z } from 'zod'
 import { nexusPost } from '../nexus-api.js'
 
 // ---------------------------------------------------------------------------
-// create_session
+// create_session -> session_create
 // ---------------------------------------------------------------------------
 
 export const createSessionSchema = {
@@ -33,7 +33,7 @@ type CreateSessionArgs = {
 
 export async function createSession(args: CreateSessionArgs) {
   const result = await nexusPost('/api/mcp/sessions', {
-    action: 'create_session',
+    action: 'session_create',
     project_id: args.project_id,
     title: args.title,
   })
@@ -58,7 +58,7 @@ export async function createSession(args: CreateSessionArgs) {
 }
 
 // ---------------------------------------------------------------------------
-// close_session
+// close_session -> session_close
 // ---------------------------------------------------------------------------
 
 export const closeSessionSchema = {
@@ -82,7 +82,7 @@ type CloseSessionArgs = {
 
 export async function closeSession(args: CloseSessionArgs) {
   const result = await nexusPost('/api/mcp/sessions', {
-    action: 'close_session',
+    action: 'session_close',
     session_id: args.session_id,
     summary: args.summary,
     next_entry_point: args.next_entry_point,
@@ -108,7 +108,7 @@ export async function closeSession(args: CloseSessionArgs) {
 }
 
 // ---------------------------------------------------------------------------
-// list_open_sessions
+// list_open_sessions -> session_list
 // ---------------------------------------------------------------------------
 
 export const listOpenSessionsSchema = {
@@ -129,7 +129,7 @@ type ListOpenSessionsArgs = {
 
 export async function listOpenSessions(args: ListOpenSessionsArgs) {
   const result = await nexusPost('/api/mcp/sessions', {
-    action: 'list_open_sessions',
+    action: 'session_list',
     project_id: args.project_id,
     limit: args.limit ?? 25,
   })

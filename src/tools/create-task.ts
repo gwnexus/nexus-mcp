@@ -1,8 +1,8 @@
 /**
- * create_task -- Layer 2 Coordination
+ * task_create -- Layer 2 Coordination
  *
  * Creates a new task within a project scope.
- * Delegates to POST /api/mcp/tasks (action: create_task).
+ * Delegates to POST /api/mcp/tasks (action: task_create).
  */
 
 import { z } from 'zod'
@@ -37,7 +37,7 @@ type CreateTaskArgs = {
 
 export async function createTask(args: CreateTaskArgs) {
   const result = await nexusPost('/api/mcp/tasks', {
-    action: 'create_task',
+    action: 'task_create',
     project_id: args.project_id,
     title: args.title,
     description: args.description,

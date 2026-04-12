@@ -1,9 +1,9 @@
 /**
- * ingest_document -- Layer 2 Coordination
+ * doc_ingest -- Layer 2 Coordination
  *
  * Allows agents to push text/markdown content into a project's
  * knowledge base via the ingest_items table.
- * Delegates to POST /api/mcp/documents (action: ingest_document).
+ * Delegates to POST /api/mcp/documents (action: doc_ingest).
  */
 
 import { z } from 'zod'
@@ -35,7 +35,7 @@ type IngestDocumentArgs = {
 
 export async function ingestDocument(args: IngestDocumentArgs) {
   const result = await nexusPost('/api/mcp/documents', {
-    action: 'ingest_document',
+    action: 'doc_ingest',
     project_id: args.project_id,
     title: args.title,
     body: args.body,

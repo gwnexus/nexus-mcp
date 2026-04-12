@@ -25,7 +25,7 @@ describe('Layer 2: Session tools', () => {
     it('should create a session and return session data', async () => {
       vi.mocked(nexusPost).mockResolvedValue(
         mockApiSuccess({
-          action: 'create_session',
+          action: 'session_create',
           id: TEST_IDS.sessionId,
           project_id: TEST_IDS.projectId,
           title: 'Test Session',
@@ -43,7 +43,7 @@ describe('Layer 2: Session tools', () => {
 
       expect(result.isError).toBeUndefined()
       const parsed = parseToolResponse(result)
-      expect(parsed.action).toBe('create_session')
+      expect(parsed.action).toBe('session_create')
       expect(parsed.id).toBe(TEST_IDS.sessionId)
       expect(parsed.status).toBe('open')
     })
@@ -66,7 +66,7 @@ describe('Layer 2: Session tools', () => {
     it('should close a session', async () => {
       vi.mocked(nexusPost).mockResolvedValue(
         mockApiSuccess({
-          action: 'close_session',
+          action: 'session_close',
           session_id: TEST_IDS.sessionId,
           project_id: TEST_IDS.projectId,
           status: 'closed',
@@ -85,7 +85,7 @@ describe('Layer 2: Session tools', () => {
 
       expect(result.isError).toBeUndefined()
       const parsed = parseToolResponse(result)
-      expect(parsed.action).toBe('close_session')
+      expect(parsed.action).toBe('session_close')
       expect(parsed.status).toBe('closed')
       expect(parsed.summary).toBe('Work done')
     })
@@ -107,7 +107,7 @@ describe('Layer 2: Session tools', () => {
     it('should list open sessions for a project', async () => {
       vi.mocked(nexusPost).mockResolvedValue(
         mockApiSuccess({
-          action: 'list_open_sessions',
+          action: 'session_list',
           project_id: TEST_IDS.projectId,
           count: 2,
           sessions: [
@@ -122,7 +122,7 @@ describe('Layer 2: Session tools', () => {
 
       expect(result.isError).toBeUndefined()
       const parsed = parseToolResponse(result)
-      expect(parsed.action).toBe('list_open_sessions')
+      expect(parsed.action).toBe('session_list')
       expect(parsed.count).toBe(2)
       expect(parsed.sessions).toHaveLength(2)
     })
@@ -133,7 +133,7 @@ describe('Layer 2: Session tools', () => {
 // Session entry tools
 // ---------------------------------------------------------------------------
 
-describe('Layer 2: append_session_entry', () => {
+describe('Layer 2: session_append', () => {
   beforeEach(() => {
     vi.restoreAllMocks()
   })
@@ -141,7 +141,7 @@ describe('Layer 2: append_session_entry', () => {
   it('should append an entry to a session', async () => {
     vi.mocked(nexusPost).mockResolvedValue(
       mockApiSuccess({
-        action: 'append_session_entry',
+        action: 'session_append',
         entry_id: TEST_IDS.entryId,
         session_id: TEST_IDS.sessionId,
         entry_type: 'note',
@@ -159,7 +159,7 @@ describe('Layer 2: append_session_entry', () => {
 
     expect(result.isError).toBeUndefined()
     const parsed = parseToolResponse(result)
-    expect(parsed.action).toBe('append_session_entry')
+    expect(parsed.action).toBe('session_append')
     expect(parsed.entry_id).toBe(TEST_IDS.entryId)
   })
 
@@ -193,7 +193,7 @@ describe('Layer 2: Task tools', () => {
     it('should create a task and return task data', async () => {
       vi.mocked(nexusPost).mockResolvedValue(
         mockApiSuccess({
-          action: 'create_task',
+          action: 'task_create',
           task_id: TEST_IDS.taskId,
           project_id: TEST_IDS.projectId,
           title: 'New Task',
@@ -211,7 +211,7 @@ describe('Layer 2: Task tools', () => {
 
       expect(result.isError).toBeUndefined()
       const parsed = parseToolResponse(result)
-      expect(parsed.action).toBe('create_task')
+      expect(parsed.action).toBe('task_create')
       expect(parsed.task_id).toBe(TEST_IDS.taskId)
     })
 
@@ -233,7 +233,7 @@ describe('Layer 2: Task tools', () => {
     it('should update task status', async () => {
       vi.mocked(nexusPost).mockResolvedValue(
         mockApiSuccess({
-          action: 'update_task_status',
+          action: 'task_update',
           task_id: TEST_IDS.taskId,
           previous_status: 'open',
           new_status: 'in_progress',
@@ -249,7 +249,7 @@ describe('Layer 2: Task tools', () => {
 
       expect(result.isError).toBeUndefined()
       const parsed = parseToolResponse(result)
-      expect(parsed.action).toBe('update_task_status')
+      expect(parsed.action).toBe('task_update')
       expect(parsed.previous_status).toBe('open')
       expect(parsed.new_status).toBe('in_progress')
     })
@@ -272,7 +272,7 @@ describe('Layer 2: Task tools', () => {
     it('should add a note to an existing task', async () => {
       vi.mocked(nexusPost).mockResolvedValue(
         mockApiSuccess({
-          action: 'add_task_note',
+          action: 'task_note',
           note_id: TEST_IDS.noteId,
           task_id: TEST_IDS.taskId,
         }),
@@ -287,7 +287,7 @@ describe('Layer 2: Task tools', () => {
 
       expect(result.isError).toBeUndefined()
       const parsed = parseToolResponse(result)
-      expect(parsed.action).toBe('add_task_note')
+      expect(parsed.action).toBe('task_note')
       expect(parsed.note_id).toBe(TEST_IDS.noteId)
     })
 
@@ -503,7 +503,7 @@ describe('Layer 2: Inbox and Outbox tools', () => {
     it('should acknowledge a letter', async () => {
       vi.mocked(nexusPost).mockResolvedValue(
         mockApiSuccess({
-          action: 'vl_acknowledge',
+          action: 'vl_ack',
           letter_id: TEST_IDS.letterId,
           new_status: 'acknowledged',
         }),
@@ -517,7 +517,7 @@ describe('Layer 2: Inbox and Outbox tools', () => {
 
       expect(result.isError).toBeUndefined()
       const parsed = parseToolResponse(result)
-      expect(parsed.action).toBe('vl_acknowledge')
+      expect(parsed.action).toBe('vl_ack')
       expect(parsed.new_status).toBe('acknowledged')
     })
 
@@ -539,7 +539,7 @@ describe('Layer 2: Inbox and Outbox tools', () => {
 // Ingest document tool
 // ---------------------------------------------------------------------------
 
-describe('Layer 2: ingest_document', () => {
+describe('Layer 2: doc_ingest', () => {
   beforeEach(() => {
     vi.restoreAllMocks()
   })
@@ -547,7 +547,7 @@ describe('Layer 2: ingest_document', () => {
   it('should ingest a document', async () => {
     vi.mocked(nexusPost).mockResolvedValue(
       mockApiSuccess({
-        action: 'ingest_document',
+        action: 'doc_ingest',
         document_id: TEST_IDS.documentId,
         project_id: TEST_IDS.projectId,
         title: 'Research Findings',
@@ -568,7 +568,7 @@ describe('Layer 2: ingest_document', () => {
 
     expect(result.isError).toBeUndefined()
     const parsed = parseToolResponse(result)
-    expect(parsed.action).toBe('ingest_document')
+    expect(parsed.action).toBe('doc_ingest')
     expect(parsed.document_id).toBe(TEST_IDS.documentId)
     expect(parsed.classification).toBe('unclassified')
   })

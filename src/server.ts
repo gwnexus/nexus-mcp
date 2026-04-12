@@ -12,37 +12,37 @@
  *   Callers no longer pass user_id as a parameter.
  *
  * Layer 1 - Knowledge Access:
- *   - search_knowledge: Search project knowledge (keyword/semantic/hybrid)
- *   - get_project_memory: Curated project context for agent bootstrapping
- *   - get_document: Fetch a single knowledge object
- *   - get_related_entities: Navigate entity relationships
+ *   - kb_search: Search project knowledge (keyword/semantic/hybrid)
+ *   - kb_memory: Curated project context for agent bootstrapping
+ *   - kb_get: Fetch a single knowledge object
+ *   - kb_related: Navigate entity relationships
  *
  * Layer 2 - Coordination:
  *   - vl_create: Create a new vault letter
  *   - vl_reply: Reply to an existing vault letter
  *   - vl_inbox: List letters addressed to the calling agent/user
  *   - vl_outbox: List letters sent by the calling agent/user
- *   - vl_acknowledge: Acknowledge receipt of a new vault letter
- *   - create_task: Create a task in a project
- *   - update_task_status: Update task status, priority, or assignee
- *   - add_task_note: Append a note to a task (append-only)
- *   - add_decision_comment: Add a comment to an ADR (append-only)
- *   - list_decision_comments: List comments for an ADR
+ *   - vl_ack: Acknowledge receipt of a new vault letter
+ *   - task_create: Create a task in a project
+ *   - task_update: Update task status, priority, or assignee
+ *   - task_note: Append a note to a task (append-only)
+ *   - dc_add: Add a comment to an ADR (append-only)
+ *   - dc_list: List comments for an ADR
  *   - sk_list: List skills for the current tenant
  *   - sk_get: Get full skill content by identifier
  *   - sk_create: Create a new skill in draft status
  *   - sk_update: Update skill content or metadata
  *   - sk_activate: Change skill status (draft/active/archived)
- *   - ingest_document: Push text/markdown content into project knowledge base
- *   - append_session_entry: Append to a session (write-isolated)
- *   - create_session: Start a new work session
- *   - close_session: End a session with summary and next entry point
- *   - list_open_sessions: List open sessions for a project
+ *   - doc_ingest: Push text/markdown content into project knowledge base
+ *   - session_append: Append to a session (write-isolated)
+ *   - session_create: Start a new work session
+ *   - session_close: End a session with summary and next entry point
+ *   - session_list: List open sessions for a project
  *
  * Layer 3 - Governance:
- *   - create_adr_draft: Create a new ADR draft
- *   - submit_adr_review: Submit an ADR for review
- *   - record_adr_decision: Accept or reject an ADR
+ *   - adr_create: Create a new ADR draft
+ *   - adr_submit: Submit an ADR for review
+ *   - adr_decide: Accept or reject an ADR
  *
  * Usage:
  *   npx tsx src/mcp/server.ts
@@ -175,28 +175,28 @@ const server = new McpServer(
 // ---------------------------------------------------------------------------
 
 server.tool(
-  'search_knowledge',
+  'kb_search',
   'Search project knowledge using keyword, semantic, or hybrid mode. Applies project scope filters before retrieval. Returns matching entities with relevance ranking.',
   searchKnowledgeSchema,
   async (args) => searchKnowledge(args),
 )
 
 server.tool(
-  'get_project_memory',
+  'kb_memory',
   'Get curated project context for agent bootstrapping. Returns ADRs, active tasks, recent sessions, open letters, and other project knowledge based on selected categories and depth.',
   getProjectMemorySchema,
   async (args) => getProjectMemory(args),
 )
 
 server.tool(
-  'get_document',
+  'kb_get',
   'Fetch a single knowledge object (session, decision, letter, task, etc.) in structured, markdown, or summary format. Includes child entries for sessions and letters.',
   getDocumentSchema,
   async (args) => getDocument(args),
 )
 
 server.tool(
-  'get_related_entities',
+  'kb_related',
   'Navigate entity relationships. Returns graph-neighbor entities related to a given item, such as supersession chains for ADRs, thread siblings for letters, or tasks created during sessions.',
   getRelatedEntitiesSchema,
   async (args) => getRelatedEntities(args),
@@ -235,63 +235,63 @@ server.tool(
 )
 
 server.tool(
-  'vl_acknowledge',
+  'vl_ack',
   'Acknowledge receipt of a new vault letter. Transitions the letter from new to acknowledged status and appends an acknowledgment message.',
   acknowledgeLetterSchema,
   withIdentity(acknowledgeLetter),
 )
 
 server.tool(
-  'create_task',
+  'task_create',
   'Create a new task within a project scope. Returns the new task ID.',
   createTaskSchema,
   withIdentity(createTask),
 )
 
 server.tool(
-  'update_task_status',
+  'task_update',
   'Update the status of an existing task. Optionally change priority or assignee. Automatically records a status-change note for audit trail.',
   updateTaskStatusSchema,
   withIdentity(updateTaskStatus),
 )
 
 server.tool(
-  'add_task_note',
+  'task_note',
   'Append a note to an existing task. Notes are append-only and maintain a chronological audit trail. Useful for recording progress, blockers, or decisions.',
   addTaskNoteSchema,
   withIdentity(addTaskNote),
 )
 
 server.tool(
-  'ingest_document',
+  'doc_ingest',
   'Push text or markdown content into a project knowledge base. Creates an ingest item that can later be classified. Useful for agents to persist research results, generated documents, or extracted knowledge.',
   ingestDocumentSchema,
   withIdentity(ingestDocument),
 )
 
 server.tool(
-  'append_session_entry',
+  'session_append',
   'Append an entry to an existing session. Enforces session write isolation: only the session creator can append entries.',
   appendSessionEntrySchema,
   withIdentity(appendSessionEntry),
 )
 
 server.tool(
-  'create_session',
-  'Create a new work session for a project. Returns the session ID. The session starts in open status and must be closed explicitly via close_session.',
+  'session_create',
+  'Create a new work session for a project. Returns the session ID. The session starts in open status and must be closed explicitly via session_close.',
   createSessionSchema,
   withIdentity(createSession),
 )
 
 server.tool(
-  'close_session',
+  'session_close',
   'Close an open session. Sets status to closed, optionally records a summary and next entry point. Only the session creator can close it.',
   closeSessionSchema,
   withIdentity(closeSession),
 )
 
 server.tool(
-  'list_open_sessions',
+  'session_list',
   'List open sessions for a project. Returns sessions ordered by creation date (newest first). Useful for checking active work before starting a new session.',
   listOpenSessionsSchema,
   async (args) => listOpenSessions(args),
@@ -302,14 +302,14 @@ server.tool(
 // ---------------------------------------------------------------------------
 
 server.tool(
-  'add_decision_comment',
+  'dc_add',
   'Add a comment to an ADR decision. Comments are append-only and support both human and agent actors.',
   addDecisionCommentSchema,
   withIdentity(addDecisionComment),
 )
 
 server.tool(
-  'list_decision_comments',
+  'dc_list',
   'List comments for an ADR decision in chronological order.',
   listDecisionCommentsSchema,
   async (args) => listDecisionComments(args),
@@ -359,21 +359,21 @@ server.tool(
 // ---------------------------------------------------------------------------
 
 server.tool(
-  'create_adr_draft',
+  'adr_create',
   'Create a new ADR (Architecture Decision Record) in draft state. Auto-assigns the next ADR number for the project. Optionally links to a superseded ADR.',
   createAdrDraftSchema,
   withIdentity(createAdrDraft),
 )
 
 server.tool(
-  'submit_adr_review',
+  'adr_submit',
   'Submit an ADR for review. Transitions an ADR from draft to under_review state. Only drafts can be submitted.',
   submitAdrReviewSchema,
   withIdentity(submitAdrReview),
 )
 
 server.tool(
-  'record_adr_decision',
+  'adr_decide',
   'Accept or reject an ADR that is under review. If accepted and it supersedes another ADR, the superseded ADR is automatically marked. Optional rationale is appended to the ADR body.',
   recordAdrDecisionSchema,
   withIdentity(recordAdrDecision),

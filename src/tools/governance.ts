@@ -11,7 +11,7 @@ import { z } from 'zod'
 import { nexusPost } from '../nexus-api.js'
 
 // ---------------------------------------------------------------------------
-// create_adr_draft
+// create_adr_draft -> adr_create
 // ---------------------------------------------------------------------------
 
 export const createAdrDraftSchema = {
@@ -46,7 +46,7 @@ type CreateAdrDraftArgs = {
 
 export async function createAdrDraft(args: CreateAdrDraftArgs) {
   const result = await nexusPost('/api/mcp/governance', {
-    action: 'create_adr_draft',
+    action: 'adr_create',
     project_id: args.project_id,
     title: args.title,
     context: args.context,
@@ -75,7 +75,7 @@ export async function createAdrDraft(args: CreateAdrDraftArgs) {
 }
 
 // ---------------------------------------------------------------------------
-// submit_adr_review
+// submit_adr_review -> adr_submit
 // ---------------------------------------------------------------------------
 
 export const submitAdrReviewSchema = {
@@ -89,7 +89,7 @@ type SubmitAdrReviewArgs = {
 
 export async function submitAdrReview(args: SubmitAdrReviewArgs) {
   const result = await nexusPost('/api/mcp/governance', {
-    action: 'submit_adr_review',
+    action: 'adr_submit',
     adr_id: args.adr_id,
   })
 
@@ -113,7 +113,7 @@ export async function submitAdrReview(args: SubmitAdrReviewArgs) {
 }
 
 // ---------------------------------------------------------------------------
-// record_adr_decision
+// record_adr_decision -> adr_decide
 // ---------------------------------------------------------------------------
 
 export const recordAdrDecisionSchema = {
@@ -136,7 +136,7 @@ type RecordAdrDecisionArgs = {
 
 export async function recordAdrDecision(args: RecordAdrDecisionArgs) {
   const result = await nexusPost('/api/mcp/governance', {
-    action: 'record_adr_decision',
+    action: 'adr_decide',
     adr_id: args.adr_id,
     decision: args.decision,
     rationale: args.rationale,

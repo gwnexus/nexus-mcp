@@ -1,11 +1,11 @@
 /**
- * get_document -- Layer 1 Knowledge Access
+ * kb_get -- Layer 1 Knowledge Access
  *
  * Fetches a single knowledge object in canonical form.
  * Returns metadata, current version, body, and linked references.
- * Delegates to POST /api/mcp/documents (action: get_document).
+ * Delegates to POST /api/mcp/documents (action: kb_get).
  *
- * ADR-0001 spec: get_document(entity_type, entity_id, render_mode)
+ * ADR-0001 spec: kb_get(entity_type, entity_id, render_mode)
  */
 
 import { z } from 'zod'
@@ -38,7 +38,7 @@ type GetDocumentArgs = {
 
 export async function getDocument(args: GetDocumentArgs) {
   const result = await nexusPost('/api/mcp/documents', {
-    action: 'get_document',
+    action: 'kb_get',
     entity_type: args.entity_type,
     entity_id: args.entity_id,
     render_mode: args.render_mode ?? 'structured',

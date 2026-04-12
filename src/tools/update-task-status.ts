@@ -1,8 +1,8 @@
 /**
- * update_task_status -- Layer 2 Coordination
+ * task_update -- Layer 2 Coordination
  *
  * Updates the status (and optionally priority/assignee) of an existing task.
- * Delegates to POST /api/mcp/tasks (action: update_task_status).
+ * Delegates to POST /api/mcp/tasks (action: task_update).
  */
 
 import { z } from 'zod'
@@ -36,7 +36,7 @@ type UpdateTaskStatusArgs = {
 
 export async function updateTaskStatus(args: UpdateTaskStatusArgs) {
   const result = await nexusPost('/api/mcp/tasks', {
-    action: 'update_task_status',
+    action: 'task_update',
     task_id: args.task_id,
     status: args.status,
     priority: args.priority,

@@ -1,5 +1,5 @@
 /**
- * search_knowledge -- Layer 1 Knowledge Access
+ * kb_search -- Layer 1 Knowledge Access
  *
  * Searches project knowledge using keyword, semantic, or hybrid mode.
  * Delegates to POST /api/mcp/search.

@@ -21,7 +21,7 @@ describe('Decision Comments tools', () => {
     it('should add a comment to an existing decision', async () => {
       vi.mocked(nexusPost).mockResolvedValue(
         mockApiSuccess({
-          action: 'add_decision_comment',
+          action: 'dc_add',
           comment_id: 'comment-id-1',
           decision_id: TEST_IDS.adrId,
           decision_title: 'Test ADR',
@@ -38,7 +38,7 @@ describe('Decision Comments tools', () => {
 
       expect(result.isError).toBeUndefined()
       const parsed = parseToolResponse(result)
-      expect(parsed.action).toBe('add_decision_comment')
+      expect(parsed.action).toBe('dc_add')
       expect(parsed.comment_id).toBe('comment-id-1')
       expect(parsed.decision_id).toBe(TEST_IDS.adrId)
       expect(parsed.decision_title).toBe('Test ADR')
@@ -47,7 +47,7 @@ describe('Decision Comments tools', () => {
     it('should support agent_id in comment', async () => {
       vi.mocked(nexusPost).mockResolvedValue(
         mockApiSuccess({
-          action: 'add_decision_comment',
+          action: 'dc_add',
           comment_id: 'comment-id-2',
           decision_id: TEST_IDS.adrId,
           decision_title: 'ADR',
@@ -66,7 +66,7 @@ describe('Decision Comments tools', () => {
       expect(result.isError).toBeUndefined()
       // Verify agent_id was passed to the API
       expect(nexusPost).toHaveBeenCalledWith('/api/mcp/governance', {
-        action: 'add_decision_comment',
+        action: 'dc_add',
         decision_id: TEST_IDS.adrId,
         body: 'Agent comment',
         agent_id: TEST_IDS.agentId,
