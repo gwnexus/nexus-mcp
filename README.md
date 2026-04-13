@@ -5,11 +5,11 @@ local agent runtimes (terminals) and the Nexus HTTP API.
 
 ## Architecture
 
-The server exposes 35 tools across 4 layers via the Model Context Protocol
+The server exposes 36 tools across 4 layers via the Model Context Protocol
 (stdio transport). All data access goes through the Nexus API — the MCP server
 has no direct database access.
 
-- **Layer 1 — Knowledge Access:** kb_search, kb_memory, kb_get, kb_related
+- **Layer 1 — Knowledge Access:** kb_search, kb_memory, kb_get, kb_related, project_list
 - **Layer 2 — Coordination:** vault letters (vl_create/vl_reply/vl_inbox/vl_outbox/vl_ack),
   tasks (task_create/task_update/task_note), sessions (session_create/session_list/session_close/session_append),
   decision comments (dc_add/dc_list), document ingestion (doc_ingest),
@@ -49,7 +49,7 @@ src/
   server.ts          # MCP server entry point (stdio transport)
   auth.ts            # Token-based identity resolution via Nexus API
   nexus-api.ts       # HTTP client for Nexus API (nexusGet, nexusPost)
-  tools/             # Tool modules (35 tools total)
+  tools/             # Tool modules (36 tools total)
   __tests__/         # Unit tests with mocked API responses
 ```
 
