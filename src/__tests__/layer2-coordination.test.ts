@@ -604,8 +604,8 @@ describe('Layer 2: Skill tools', () => {
           action: 'sk_list',
           count: 2,
           skills: [
-            { id: TEST_IDS.skillId, skill_id: 'mp-init-nexus', name: 'Init Nexus', status: 'active' },
-            { id: '99999999-0000-1111-2222-333333333333', skill_id: 'mp-git-commit', name: 'Git Commit', status: 'active' },
+            { id: TEST_IDS.skillId, skill_id: 'nx-init-nexus', name: 'Init Nexus', status: 'active' },
+            { id: '99999999-0000-1111-2222-333333333333', skill_id: 'nx-git-commit', name: 'Git Commit', status: 'active' },
           ],
         }),
       )
@@ -637,30 +637,30 @@ describe('Layer 2: Skill tools', () => {
           action: 'sk_get',
           skill: {
             id: TEST_IDS.skillId,
-            skill_id: 'mp-init-nexus',
+            skill_id: 'nx-init-nexus',
             name: 'Init Nexus',
             body: '# Init Nexus\n\nInstructions here.',
             status: 'active',
           },
-          command: { id: '11111111-0000-1111-2222-333333333333', command_slug: 'mpowr-init-nexus', active: true },
+          command: { id: '11111111-0000-1111-2222-333333333333', command_slug: 'nexus-init-nexus', active: true },
         }),
       )
 
       const { skGet } = await import('../tools/skills.js')
-      const result = await skGet({ skill_id: 'mp-init-nexus', user_id: TEST_IDS.userId })
+      const result = await skGet({ skill_id: 'nx-init-nexus', user_id: TEST_IDS.userId })
 
       expect(result.isError).toBeUndefined()
       const parsed = parseToolResponse(result)
       expect(parsed.action).toBe('sk_get')
-      expect(parsed.skill.skill_id).toBe('mp-init-nexus')
-      expect(parsed.command.command_slug).toBe('mpowr-init-nexus')
+      expect(parsed.skill.skill_id).toBe('nx-init-nexus')
+      expect(parsed.command.command_slug).toBe('nexus-init-nexus')
     })
 
     it('should return error if skill not found', async () => {
       vi.mocked(nexusPost).mockResolvedValue(mockApiError('Skill not found', 404))
 
       const { skGet } = await import('../tools/skills.js')
-      const result = await skGet({ skill_id: 'mp-nonexistent', user_id: TEST_IDS.userId })
+      const result = await skGet({ skill_id: 'nx-nonexistent', user_id: TEST_IDS.userId })
 
       expect(result.isError).toBe(true)
     })
@@ -672,15 +672,15 @@ describe('Layer 2: Skill tools', () => {
         mockApiSuccess({
           action: 'sk_create',
           skill_id: TEST_IDS.skillId,
-          skill_identifier: 'mp-test-skill',
+          skill_identifier: 'nx-test-skill',
           status: 'draft',
-          command_slug: 'mpowr-test-skill',
+          command_slug: 'nexus-test-skill',
         }),
       )
 
       const { skCreate } = await import('../tools/skills.js')
       const result = await skCreate({
-        skill_id: 'mp-test-skill',
+        skill_id: 'nx-test-skill',
         name: 'Test Skill',
         body: '# Test\n\nSkill body',
         user_id: TEST_IDS.userId,
@@ -689,9 +689,9 @@ describe('Layer 2: Skill tools', () => {
       expect(result.isError).toBeUndefined()
       const parsed = parseToolResponse(result)
       expect(parsed.action).toBe('sk_create')
-      expect(parsed.skill_identifier).toBe('mp-test-skill')
+      expect(parsed.skill_identifier).toBe('nx-test-skill')
       expect(parsed.status).toBe('draft')
-      expect(parsed.command_slug).toBe('mpowr-test-skill')
+      expect(parsed.command_slug).toBe('nexus-test-skill')
     })
   })
 
@@ -701,14 +701,14 @@ describe('Layer 2: Skill tools', () => {
         mockApiSuccess({
           action: 'sk_update',
           skill_id: TEST_IDS.skillId,
-          skill_identifier: 'mp-init-nexus',
+          skill_identifier: 'nx-init-nexus',
           updated_fields: ['body', 'version'],
         }),
       )
 
       const { skUpdate } = await import('../tools/skills.js')
       const result = await skUpdate({
-        skill_id: 'mp-init-nexus',
+        skill_id: 'nx-init-nexus',
         body: '# Updated\n\nNew content',
         user_id: TEST_IDS.userId,
       })
@@ -724,7 +724,7 @@ describe('Layer 2: Skill tools', () => {
 
       const { skUpdate } = await import('../tools/skills.js')
       const result = await skUpdate({
-        skill_id: 'mp-nonexistent',
+        skill_id: 'nx-nonexistent',
         name: 'Updated',
         user_id: TEST_IDS.userId,
       })
@@ -739,7 +739,7 @@ describe('Layer 2: Skill tools', () => {
         mockApiSuccess({
           action: 'sk_activate',
           skill_id: TEST_IDS.skillId,
-          skill_identifier: 'mp-code-review',
+          skill_identifier: 'nx-code-review',
           previous_status: 'draft',
           new_status: 'active',
         }),
@@ -747,7 +747,7 @@ describe('Layer 2: Skill tools', () => {
 
       const { skActivate } = await import('../tools/skills.js')
       const result = await skActivate({
-        skill_id: 'mp-code-review',
+        skill_id: 'nx-code-review',
         status: 'active',
         user_id: TEST_IDS.userId,
       })
@@ -764,7 +764,7 @@ describe('Layer 2: Skill tools', () => {
 
       const { skActivate } = await import('../tools/skills.js')
       const result = await skActivate({
-        skill_id: 'mp-nonexistent',
+        skill_id: 'nx-nonexistent',
         status: 'active',
         user_id: TEST_IDS.userId,
       })
