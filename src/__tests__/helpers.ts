@@ -53,4 +53,6 @@ export const TEST_IDS = {
   otherUserId: '99999999-aaaa-bbbb-cccc-dddddddddddd',
   skillId: '88888888-9999-aaaa-bbbb-cccccccccccc',
   tenantId: '20c72e35-d4d8-4e40-a7be-efff14d8eaff',
+  reviewId: 'aabbccdd-1122-3344-5566-778899001122',
+  assignmentId: 'bbccddee-2233-4455-6677-889900112233',
 }

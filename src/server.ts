@@ -3,7 +3,7 @@
  * nexus-mcp -- MCP Server for mpowr-nexus
  *
  * Provides Knowledge Access (Layer 1), Coordination (Layer 2),
- * and Governance (Layer 3) tools.
+ * Governance (Layer 3), and Reviews (Layer 4) tools.
  * Runs as a standalone stdio MCP server.
  *
  * Authentication:
@@ -16,6 +16,7 @@
  *   - kb_memory: Curated project context for agent bootstrapping
  *   - kb_get: Fetch a single knowledge object
  *   - kb_related: Navigate entity relationships
+ *   - project_list: List accessible projects
  *
  * Layer 2 - Coordination:
  *   - vl_create: Create a new vault letter
@@ -33,6 +34,9 @@
  *   - sk_create: Create a new skill in draft status
  *   - sk_update: Update skill content or metadata
  *   - sk_activate: Change skill status (draft/active/archived)
+ *   - sk_assign: Assign a skill to a project
+ *   - sk_unassign: Remove a skill assignment from a project
+ *   - sk_export: Export all skill assignments for a project
  *   - doc_ingest: Push text/markdown content into project knowledge base
  *   - session_append: Append to a session (write-isolated)
  *   - session_create: Start a new work session
@@ -43,6 +47,13 @@
  *   - adr_create: Create a new ADR draft
  *   - adr_submit: Submit an ADR for review
  *   - adr_decide: Accept or reject an ADR
+ *
+ * Layer 4 - Reviews:
+ *   - rv_list: List reviews with optional filters
+ *   - rv_get: Get a review by ID or entity reference
+ *   - rv_create: Create a new review for an entity
+ *   - rv_decide: Transition a review state
+ *   - rv_comment: Add a comment to a review
  *
  * Usage:
  *   npx tsx src/mcp/server.ts
@@ -57,6 +68,7 @@ import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { getIdentity, initIdentity } from './auth.js'
 
 // Layer 1: Knowledge Access
+import { projectList, projectListSchema } from './tools/project-list.js'
 import { getDocument, getDocumentSchema } from './tools/get-document.js'
 import {
   getProjectMemory,
@@ -123,6 +135,14 @@ import {
   skUpdateSchema,
 } from './tools/skills.js'
 import {
+  skAssign,
+  skAssignSchema,
+  skExport,
+  skExportSchema,
+  skUnassign,
+  skUnassignSchema,
+} from './tools/skill-assign.js'
+import {
   updateTaskStatus,
   updateTaskStatusSchema,
 } from './tools/update-task-status.js'
@@ -136,6 +156,20 @@ import {
   submitAdrReview,
   submitAdrReviewSchema,
 } from './tools/governance.js'
+
+// Layer 4: Reviews
+import {
+  rvComment,
+  rvCommentSchema,
+  rvCreate,
+  rvCreateSchema,
+  rvDecide,
+  rvDecideSchema,
+  rvGet,
+  rvGetSchema,
+  rvList,
+  rvListSchema,
+} from './tools/reviews.js'
 
 // ---------------------------------------------------------------------------
 // Identity injection helper
@@ -161,7 +195,7 @@ function withIdentity(handler: (args: any) => Promise<any>) {
 const server = new McpServer(
   {
     name: 'nexus-mcp',
-    version: '0.4.0',
+    version: '0.5.0',
   },
   {
     capabilities: {
@@ -200,6 +234,13 @@ server.tool(
   'Navigate entity relationships. Returns graph-neighbor entities related to a given item, such as supersession chains for ADRs, thread siblings for letters, or tasks created during sessions.',
   getRelatedEntitiesSchema,
   async (args) => getRelatedEntities(args),
+)
+
+server.tool(
+  'project_list',
+  'List accessible projects for the authenticated user or agent. Returns project metadata ordered by name.',
+  projectListSchema,
+  async (args) => projectList(args),
 )
 
 // ---------------------------------------------------------------------------
@@ -354,6 +395,27 @@ server.tool(
   withIdentity(skActivate),
 )
 
+server.tool(
+  'sk_assign',
+  'Assign a skill to a project. Optionally pin to a specific version and set enabled state.',
+  skAssignSchema,
+  withIdentity(skAssign),
+)
+
+server.tool(
+  'sk_unassign',
+  'Remove a skill assignment from a project.',
+  skUnassignSchema,
+  withIdentity(skUnassign),
+)
+
+server.tool(
+  'sk_export',
+  'Export all skill assignments for a project. Returns the full assignment list with pinned versions and enabled states.',
+  skExportSchema,
+  withIdentity(skExport),
+)
+
 // ---------------------------------------------------------------------------
 // Layer 3: Governance tools
 // ---------------------------------------------------------------------------
@@ -377,6 +439,45 @@ server.tool(
   'Accept or reject an ADR that is under review. If accepted and it supersedes another ADR, the superseded ADR is automatically marked. Optional rationale is appended to the ADR body.',
   recordAdrDecisionSchema,
   withIdentity(recordAdrDecision),
+)
+
+// ---------------------------------------------------------------------------
+// Layer 4: Review tools
+// ---------------------------------------------------------------------------
+
+server.tool(
+  'rv_list',
+  'List reviews with optional filters by entity type and status. Returns reviews ordered by recency.',
+  rvListSchema,
+  withIdentity(rvList),
+)
+
+server.tool(
+  'rv_get',
+  'Get a review by review ID, or by entity type and entity ID. Returns full review details including status and history.',
+  rvGetSchema,
+  withIdentity(rvGet),
+)
+
+server.tool(
+  'rv_create',
+  'Create a new review for a skill or agent entity. Returns the new review ID and initial status.',
+  rvCreateSchema,
+  withIdentity(rvCreate),
+)
+
+server.tool(
+  'rv_decide',
+  'Transition a review state (submit, accept, reject, request_revision, resubmit, archive). Enforces valid state transitions. Optional rationale is recorded.',
+  rvDecideSchema,
+  withIdentity(rvDecide),
+)
+
+server.tool(
+  'rv_comment',
+  'Add a comment to a review. Supports inline comments with optional line range. Comments are append-only and maintain a chronological audit trail.',
+  rvCommentSchema,
+  withIdentity(rvComment),
 )
 
 // ---------------------------------------------------------------------------
