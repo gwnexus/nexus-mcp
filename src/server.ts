@@ -27,6 +27,7 @@
  *   - task_create: Create a task in a project
  *   - task_update: Update task status, priority, or assignee
  *   - task_note: Append a note to a task (append-only)
+ *   - task_list: List tasks for a project with filters
  *   - dc_add: Add a comment to an ADR (append-only)
  *   - dc_list: List comments for an ADR
  *   - sk_list: List skills for the current tenant
@@ -38,6 +39,7 @@
  *   - sk_unassign: Remove a skill assignment from a project
  *   - sk_export: Export all skill assignments for a project
  *   - doc_ingest: Push text/markdown content into project knowledge base
+ *   - doc_list: List ingested documents for a project
  *   - session_append: Append to a session (write-isolated)
  *   - session_create: Start a new work session
  *   - session_close: End a session with summary and next entry point
@@ -114,6 +116,11 @@ import {
   replyLetter,
   replyLetterSchema,
 } from './tools/letters.js'
+import {
+  listDocuments,
+  listDocumentsSchema,
+} from './tools/list-documents.js'
+import { listTasks, listTasksSchema } from './tools/list-tasks.js'
 import {
   closeSession,
   closeSessionSchema,
@@ -195,7 +202,7 @@ function withIdentity(handler: (args: any) => Promise<any>) {
 const server = new McpServer(
   {
     name: 'nexus-mcp',
-    version: '0.5.0',
+    version: '0.6.0',
   },
   {
     capabilities: {
@@ -304,10 +311,24 @@ server.tool(
 )
 
 server.tool(
+  'task_list',
+  'List tasks for a project with optional status filtering. Returns tasks ordered by creation date (newest first).',
+  listTasksSchema,
+  withIdentity(listTasks),
+)
+
+server.tool(
   'doc_ingest',
   'Push text or markdown content into a project knowledge base. Creates an ingest item that can later be classified. Useful for agents to persist research results, generated documents, or extracted knowledge.',
   ingestDocumentSchema,
   withIdentity(ingestDocument),
+)
+
+server.tool(
+  'doc_list',
+  'List ingested documents for a project with optional source filtering. Returns documents ordered by creation date (newest first).',
+  listDocumentsSchema,
+  withIdentity(listDocuments),
 )
 
 server.tool(

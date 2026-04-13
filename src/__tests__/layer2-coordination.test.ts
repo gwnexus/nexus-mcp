@@ -126,6 +126,34 @@ describe('Layer 2: Session tools', () => {
       expect(parsed.count).toBe(2)
       expect(parsed.sessions).toHaveLength(2)
     })
+
+    it('should return error on API failure', async () => {
+      vi.mocked(nexusPost).mockResolvedValue(mockApiError('Project not found', 404))
+
+      const { listOpenSessions } = await import('../tools/sessions.js')
+      const result = await listOpenSessions({ project_id: TEST_IDS.projectId })
+
+      expect(result.isError).toBe(true)
+    })
+
+    it('should handle empty session list', async () => {
+      vi.mocked(nexusPost).mockResolvedValue(
+        mockApiSuccess({
+          action: 'session_list',
+          project_id: TEST_IDS.projectId,
+          count: 0,
+          sessions: [],
+        }),
+      )
+
+      const { listOpenSessions } = await import('../tools/sessions.js')
+      const result = await listOpenSessions({ project_id: TEST_IDS.projectId })
+
+      expect(result.isError).toBeUndefined()
+      const parsed = parseToolResponse(result)
+      expect(parsed.count).toBe(0)
+      expect(parsed.sessions).toHaveLength(0)
+    })
   })
 })
 
@@ -388,6 +416,19 @@ describe('Layer 2: Letter tools', () => {
       expect(parsed.action).toBe('vl_reply')
     })
 
+    it('should return error on API failure', async () => {
+      vi.mocked(nexusPost).mockResolvedValue(mockApiError('Letter not found', 404))
+
+      const { replyLetter } = await import('../tools/letters.js')
+      const result = await replyLetter({
+        letter_id: TEST_IDS.letterId,
+        body: 'Reply to missing letter',
+        user_id: TEST_IDS.userId,
+      })
+
+      expect(result.isError).toBe(true)
+    })
+
     it('should include new_status when provided', async () => {
       vi.mocked(nexusPost).mockResolvedValue(
         mockApiSuccess({
@@ -496,6 +537,18 @@ describe('Layer 2: Inbox and Outbox tools', () => {
       const parsed = parseToolResponse(result)
       expect(parsed.action).toBe('vl_outbox')
       expect(parsed.count).toBe(1)
+    })
+
+    it('should return error on API failure', async () => {
+      vi.mocked(nexusPost).mockResolvedValue(mockApiError('Project not found', 404))
+
+      const { listOutbox } = await import('../tools/letter-inbox.js')
+      const result = await listOutbox({
+        project_id: TEST_IDS.projectId,
+        user_id: TEST_IDS.userId,
+      })
+
+      expect(result.isError).toBe(true)
     })
   })
 
@@ -692,6 +745,20 @@ describe('Layer 2: Skill tools', () => {
       expect(parsed.skill_identifier).toBe('nx-test-skill')
       expect(parsed.status).toBe('draft')
       expect(parsed.command_slug).toBe('nexus-test-skill')
+    })
+
+    it('should return error on API failure', async () => {
+      vi.mocked(nexusPost).mockResolvedValue(mockApiError('Duplicate skill_id', 409))
+
+      const { skCreate } = await import('../tools/skills.js')
+      const result = await skCreate({
+        skill_id: 'nx-duplicate',
+        name: 'Duplicate Skill',
+        body: '# Dup',
+        user_id: TEST_IDS.userId,
+      })
+
+      expect(result.isError).toBe(true)
     })
   })
 

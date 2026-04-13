@@ -9,6 +9,15 @@
 let _baseUrl: string | null = null
 let _token: string | null = null
 
+/**
+ * Reset the cached API configuration. Used by E2E tests to switch
+ * from mocked env vars to real credentials.
+ */
+export function resetApiConfig(): void {
+  _baseUrl = null
+  _token = null
+}
+
 function getConfig(): { baseUrl: string; token: string } {
   if (_baseUrl && _token) return { baseUrl: _baseUrl, token: _token }
 

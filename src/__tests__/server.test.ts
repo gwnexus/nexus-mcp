@@ -78,9 +78,9 @@ describe('MCP Server: withIdentity wrapper', () => {
 })
 
 describe('MCP Server: Schema exports', () => {
-  const EXPECTED_TOOL_COUNT = 36
+  const EXPECTED_TOOL_COUNT = 38
 
-  it('should register exactly 36 tools in server.ts', () => {
+  it('should register exactly 38 tools in server.ts', () => {
     // Static analysis: count server.tool( calls in server.ts as a regression guard.
     // If you add or remove a tool, update EXPECTED_TOOL_COUNT above.
     const serverSource = readFileSync(
@@ -234,5 +234,17 @@ describe('MCP Server: Schema exports', () => {
     expect(typeof reviews.rvCreate).toBe('function')
     expect(typeof reviews.rvDecide).toBe('function')
     expect(typeof reviews.rvComment).toBe('function')
+
+    // list-tasks module (task_list)
+    const listTasks = await import('../tools/list-tasks.js')
+    expect(listTasks.listTasksSchema).toBeDefined()
+    expect(listTasks.listTasksSchema.project_id).toBeDefined()
+    expect(typeof listTasks.listTasks).toBe('function')
+
+    // list-documents module (doc_list)
+    const listDocuments = await import('../tools/list-documents.js')
+    expect(listDocuments.listDocumentsSchema).toBeDefined()
+    expect(listDocuments.listDocumentsSchema.project_id).toBeDefined()
+    expect(typeof listDocuments.listDocuments).toBe('function')
   })
 })
