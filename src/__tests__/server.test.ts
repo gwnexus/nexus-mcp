@@ -1,10 +1,12 @@
 /**
  * Tests for MCP server.ts integration:
  * - withIdentity wrapper
- * - Tool registration count
+ * - Tool registration count (regression guard)
  * - Schema export verification
  */
 
+import { readFileSync } from 'node:fs'
+import { resolve } from 'node:path'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 // We test the withIdentity pattern and schema exports without
@@ -76,6 +78,19 @@ describe('MCP Server: withIdentity wrapper', () => {
 })
 
 describe('MCP Server: Schema exports', () => {
+  const EXPECTED_TOOL_COUNT = 36
+
+  it('should register exactly 36 tools in server.ts', () => {
+    // Static analysis: count server.tool( calls in server.ts as a regression guard.
+    // If you add or remove a tool, update EXPECTED_TOOL_COUNT above.
+    const serverSource = readFileSync(
+      resolve(__dirname, '../server.ts'),
+      'utf-8',
+    )
+    const matches = serverSource.match(/server\.tool\(/g) || []
+    expect(matches.length).toBe(EXPECTED_TOOL_COUNT)
+  })
+
   it('should export valid schemas from all tool modules', async () => {
     // Verify each tool module exports the expected schema + handler
 
