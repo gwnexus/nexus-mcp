@@ -1,7 +1,32 @@
 # nexus-mcp
 
+[![npm](https://img.shields.io/npm/v/@mpowr/nexus-mcp)](https://www.npmjs.com/package/@mpowr/nexus-mcp)
+
 MCP server for the mpowr-nexus platform. Provides the mediation layer between
 local agent runtimes (terminals) and the Nexus HTTP API.
+
+## Install
+
+```bash
+npx @mpowr/nexus-mcp
+```
+
+Or add to your agent's MCP configuration:
+
+```json
+{
+  "mcpServers": {
+    "nexus": {
+      "command": "npx",
+      "args": ["-y", "@mpowr/nexus-mcp"],
+      "env": {
+        "NEXUS_API_URL": "https://nexus.mpowr.tech",
+        "NEXUS_PRIVATE_TOKEN": "nxs_pat_..."
+      }
+    }
+  }
+}
+```
 
 ## Architecture
 
