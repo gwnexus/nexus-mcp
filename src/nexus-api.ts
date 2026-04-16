@@ -49,6 +49,9 @@ export interface NexusApiResponse<T = unknown> {
   error: string | null
 }
 
+/** Default HTTP timeout in milliseconds (30 seconds). */
+const DEFAULT_TIMEOUT_MS = 30_000
+
 /**
  * Make an authenticated request to the Nexus API.
  */
@@ -57,6 +60,7 @@ export async function nexusApi<T = unknown>(
   options: {
     method?: 'GET' | 'POST' | 'PATCH' | 'DELETE'
     body?: unknown
+    timeoutMs?: number
   } = {},
 ): Promise<NexusApiResponse<T>> {
   const { baseUrl, token } = getConfig()
@@ -69,7 +73,11 @@ export async function nexusApi<T = unknown>(
   }
 
   try {
-    const fetchOpts: RequestInit = { method, headers }
+    const fetchOpts: RequestInit = {
+      method,
+      headers,
+      signal: AbortSignal.timeout(options.timeoutMs ?? DEFAULT_TIMEOUT_MS),
+    }
     if (options.body !== undefined) {
       fetchOpts.body = JSON.stringify(options.body)
     }
