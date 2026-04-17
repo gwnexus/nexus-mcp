@@ -11,16 +11,17 @@ import { nexusPost } from '../nexus-api.js'
 
 export const ingestDocumentSchema = {
   project_id: z.string().uuid().describe('Project UUID'),
-  title: z.string().describe('Document title'),
-  body: z.string().describe('Document content (text or markdown)'),
+  title: z.string().max(500).describe('Document title'),
+  body: z.string().max(100_000).describe('Document content (text or markdown)'),
   source: z
     .string()
+    .max(200)
     .optional()
     .describe(
       'Source identifier (e.g. "mcp-agent", "research", "session-extract")',
     ),
   source_url: z.string().url().optional().describe('Source URL if applicable'),
-  agent_id: z.string().optional().describe('Agent identifier if applicable'),
+  agent_id: z.string().max(200).optional().describe('Agent identifier if applicable'),
 }
 
 type IngestDocumentArgs = {

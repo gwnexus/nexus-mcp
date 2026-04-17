@@ -14,7 +14,7 @@ import { nexusPost } from '../nexus-api.js'
 
 export const skAssignSchema = {
   project_id: z.string().uuid().describe('Project UUID'),
-  skill_id: z.string().describe('Skill identifier or UUID'),
+  skill_id: z.string().max(200).describe('Skill identifier or UUID'),
   pinned_version: z
     .number()
     .int()
@@ -68,7 +68,7 @@ export async function skAssign(args: SkAssignArgs) {
 
 export const skUnassignSchema = {
   project_id: z.string().uuid().describe('Project UUID'),
-  skill_id: z.string().describe('Skill identifier or UUID'),
+  skill_id: z.string().max(200).describe('Skill identifier or UUID'),
 }
 
 type SkUnassignArgs = {

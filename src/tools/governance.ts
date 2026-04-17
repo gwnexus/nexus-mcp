@@ -16,13 +16,15 @@ import { nexusPost } from '../nexus-api.js'
 
 export const createAdrDraftSchema = {
   project_id: z.string().uuid().describe('Project UUID'),
-  title: z.string().describe('ADR title'),
+  title: z.string().max(500).describe('ADR title'),
   context: z
     .string()
+    .max(100_000)
     .describe('Context / motivation for the decision (markdown)'),
-  decision: z.string().describe('The decision content (markdown)'),
+  decision: z.string().max(100_000).describe('The decision content (markdown)'),
   consequences: z
     .string()
+    .max(100_000)
     .optional()
     .describe('Expected consequences of the decision (markdown)'),
   supersedes: z
@@ -30,7 +32,7 @@ export const createAdrDraftSchema = {
     .uuid()
     .optional()
     .describe('UUID of the ADR this one supersedes'),
-  agent_id: z.string().optional().describe('Agent identifier if applicable'),
+  agent_id: z.string().max(200).optional().describe('Agent identifier if applicable'),
 }
 
 type CreateAdrDraftArgs = {
@@ -123,6 +125,7 @@ export const recordAdrDecisionSchema = {
     .describe('Decision outcome: accept or reject'),
   rationale: z
     .string()
+    .max(10_000)
     .optional()
     .describe('Optional rationale for the decision'),
 }

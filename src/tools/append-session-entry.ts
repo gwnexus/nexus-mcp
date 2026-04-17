@@ -27,9 +27,10 @@ export const appendSessionEntrySchema = {
       'correction',
     ])
     .describe('Type of session entry'),
-  summary: z.string().describe('Entry content / summary text'),
+  summary: z.string().max(100_000).describe('Entry content / summary text'),
   linked_entity_type: z
     .string()
+    .max(50)
     .optional()
     .describe(
       'Type of linked entity (e.g., "task", "decision", "letter", "research_link")',
@@ -39,7 +40,7 @@ export const appendSessionEntrySchema = {
     .uuid()
     .optional()
     .describe('UUID of the linked entity'),
-  agent_id: z.string().optional().describe('Agent identifier if applicable'),
+  agent_id: z.string().max(200).optional().describe('Agent identifier if applicable'),
 }
 
 type AppendSessionEntryArgs = {

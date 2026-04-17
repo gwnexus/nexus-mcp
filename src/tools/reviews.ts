@@ -20,6 +20,7 @@ export const rvListSchema = {
     .describe('Filter by entity type (skill or agent)'),
   status: z
     .string()
+    .max(50)
     .optional()
     .describe('Filter by review status'),
   limit: z
@@ -77,6 +78,7 @@ export const rvGetSchema = {
     .describe('Review UUID (look up by review ID)'),
   entity_type: z
     .string()
+    .max(50)
     .optional()
     .describe('Entity type (used with entity_id for lookup by entity)'),
   entity_id: z
@@ -177,6 +179,7 @@ export const rvDecideSchema = {
     .describe('State transition to apply'),
   rationale: z
     .string()
+    .max(10_000)
     .optional()
     .describe('Optional rationale for the decision'),
 }
@@ -221,9 +224,10 @@ export async function rvDecide(args: RvDecideArgs) {
 
 export const rvCommentSchema = {
   review_id: z.string().uuid().describe('Review UUID'),
-  body: z.string().describe('Comment body (markdown supported)'),
+  body: z.string().max(100_000).describe('Comment body (markdown supported)'),
   agent_id: z
     .string()
+    .max(200)
     .optional()
     .describe('Agent identifier if comment is posted by an agent'),
   line_start: z

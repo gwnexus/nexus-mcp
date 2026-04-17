@@ -10,8 +10,8 @@ import { nexusPost } from '../nexus-api.js'
 
 export const createTaskSchema = {
   project_id: z.string().uuid().describe('Project UUID'),
-  title: z.string().describe('Task title'),
-  description: z.string().optional().describe('Task description'),
+  title: z.string().max(500).describe('Task title'),
+  description: z.string().max(100_000).optional().describe('Task description'),
   priority: z
     .enum(['low', 'normal', 'high', 'urgent'])
     .default('normal')
@@ -21,7 +21,7 @@ export const createTaskSchema = {
     .enum(['open', 'in_progress', 'blocked', 'done', 'cancelled'])
     .default('open')
     .describe('Initial task status'),
-  agent_id: z.string().optional().describe('Agent identifier if applicable'),
+  agent_id: z.string().max(200).optional().describe('Agent identifier if applicable'),
 }
 
 type CreateTaskArgs = {

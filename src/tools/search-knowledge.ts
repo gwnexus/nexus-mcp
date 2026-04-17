@@ -9,7 +9,7 @@ import { z } from 'zod'
 import { nexusPost } from '../nexus-api.js'
 
 export const searchKnowledgeSchema = {
-  query: z.string().describe('Free-text search query'),
+  query: z.string().max(1000).describe('Free-text search query'),
   project_id: z.string().uuid().describe('Project UUID to scope the search'),
   entity_types: z
     .array(

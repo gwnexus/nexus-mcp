@@ -11,8 +11,8 @@ import { nexusPost } from '../nexus-api.js'
 
 export const addTaskNoteSchema = {
   task_id: z.string().uuid().describe('Task UUID to add a note to'),
-  note: z.string().describe('Note content to append'),
-  agent_id: z.string().optional().describe('Agent identifier if applicable'),
+  note: z.string().max(10_000).describe('Note content to append'),
+  agent_id: z.string().max(200).optional().describe('Agent identifier if applicable'),
 }
 
 type AddTaskNoteArgs = {

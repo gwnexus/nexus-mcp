@@ -22,7 +22,7 @@ export const updateTaskStatusSchema = {
     .uuid()
     .optional()
     .describe('UUID of the newly assigned user (optional)'),
-  agent_id: z.string().optional().describe('Agent identifier if applicable'),
+  agent_id: z.string().max(200).optional().describe('Agent identifier if applicable'),
 }
 
 type UpdateTaskStatusArgs = {

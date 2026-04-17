@@ -15,7 +15,7 @@ import { nexusPost } from '../nexus-api.js'
 export const listInboxSchema = {
   project_id: z.string().uuid().describe('Project UUID'),
   status_filter: z
-    .array(z.string())
+    .array(z.string().max(50))
     .optional()
     .describe(
       'Filter by letter status (default: new, acknowledged, in_progress, blocked, needs_review)',
@@ -70,7 +70,7 @@ export async function listInbox(args: ListInboxArgs) {
 export const listOutboxSchema = {
   project_id: z.string().uuid().describe('Project UUID'),
   status_filter: z
-    .array(z.string())
+    .array(z.string().max(50))
     .optional()
     .describe('Filter by letter status (default: all non-closed)'),
   limit: z

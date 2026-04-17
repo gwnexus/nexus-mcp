@@ -12,6 +12,7 @@ export const listDocumentsSchema = {
   project_id: z.string().uuid().describe('Project UUID'),
   source: z
     .string()
+    .max(200)
     .optional()
     .describe('Filter by source (e.g., "mcp-agent", "research", "session-extract")'),
   limit: z

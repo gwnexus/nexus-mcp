@@ -24,7 +24,7 @@ export const getRelatedEntitiesSchema = {
     .describe('Type of the source entity'),
   entity_id: z.string().uuid().describe('UUID of the source entity'),
   relation_types: z
-    .array(z.string())
+    .array(z.string().max(50))
     .optional()
     .describe(
       'Filter by specific relation types (e.g., "references", "created_in", "supersedes")',

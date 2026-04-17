@@ -65,6 +65,7 @@ export async function skList(args: SkListArgs) {
 export const skGetSchema = {
   skill_id: z
     .string()
+    .max(200)
     .describe('Skill identifier (e.g., nx-init-nexus) or UUID'),
 }
 
@@ -103,10 +104,10 @@ export async function skGet(args: SkGetArgs) {
 // ---------------------------------------------------------------------------
 
 export const skCreateSchema = {
-  skill_id: z.string().describe('Skill identifier (e.g., nx-init-nexus)'),
-  name: z.string().describe('Human-readable skill name'),
-  description: z.string().optional().describe('Short description'),
-  body: z.string().describe('Full markdown instruction content'),
+  skill_id: z.string().max(200).describe('Skill identifier (e.g., nx-init-nexus)'),
+  name: z.string().max(500).describe('Human-readable skill name'),
+  description: z.string().max(1000).optional().describe('Short description'),
+  body: z.string().max(100_000).describe('Full markdown instruction content'),
   auto_generate_command: z
     .boolean()
     .default(true)
@@ -158,10 +159,11 @@ export async function skCreate(args: SkCreateArgs) {
 export const skUpdateSchema = {
   skill_id: z
     .string()
+    .max(200)
     .describe('Skill identifier (e.g., nx-init-nexus) or UUID'),
-  name: z.string().optional().describe('Updated name'),
-  description: z.string().optional().describe('Updated description'),
-  body: z.string().optional().describe('Updated markdown content'),
+  name: z.string().max(500).optional().describe('Updated name'),
+  description: z.string().max(1000).optional().describe('Updated description'),
+  body: z.string().max(100_000).optional().describe('Updated markdown content'),
   auto_generate_command: z
     .boolean()
     .optional()
@@ -213,6 +215,7 @@ export async function skUpdate(args: SkUpdateArgs) {
 export const skActivateSchema = {
   skill_id: z
     .string()
+    .max(200)
     .describe('Skill identifier (e.g., nx-init-nexus) or UUID'),
   status: z
     .enum(['active', 'archived', 'draft'])

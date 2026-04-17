@@ -14,10 +14,10 @@ import { nexusPost } from '../nexus-api.js'
 
 export const createLetterSchema = {
   project_id: z.string().uuid().describe('Project UUID'),
-  from_actor: z.string().describe('Sender identifier (agent name or user)'),
-  to_actor: z.string().describe('Recipient identifier (agent name or user)'),
-  subject: z.string().describe('Letter subject'),
-  body: z.string().describe('Initial message body'),
+  from_actor: z.string().max(200).describe('Sender identifier (agent name or user)'),
+  to_actor: z.string().max(200).describe('Recipient identifier (agent name or user)'),
+  subject: z.string().max(500).describe('Letter subject'),
+  body: z.string().max(100_000).describe('Initial message body'),
   priority: z
     .enum(['low', 'normal', 'high', 'urgent'])
     .default('normal')
@@ -31,7 +31,7 @@ export const createLetterSchema = {
     .uuid()
     .optional()
     .describe('Optional thread UUID to group related letters'),
-  agent_id: z.string().optional().describe('Agent identifier if applicable'),
+  agent_id: z.string().max(200).optional().describe('Agent identifier if applicable'),
 }
 
 type CreateLetterArgs = {
@@ -86,12 +86,12 @@ export async function createLetter(args: CreateLetterArgs) {
 
 export const replyLetterSchema = {
   letter_id: z.string().uuid().describe('Letter UUID to reply to'),
-  body: z.string().describe('Reply message body'),
+  body: z.string().max(100_000).describe('Reply message body'),
   message_type: z
     .enum(['response', 'clarification', 'review_note', 'follow_up', 'context'])
     .default('response')
     .describe('Type of reply message'),
-  agent_id: z.string().optional().describe('Agent identifier if applicable'),
+  agent_id: z.string().max(200).optional().describe('Agent identifier if applicable'),
   new_status: z
     .enum([
       'acknowledged',

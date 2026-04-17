@@ -17,9 +17,10 @@ import { nexusPost } from '../nexus-api.js'
 
 export const createSessionSchema = {
   project_id: z.string().uuid().describe('Project UUID'),
-  title: z.string().describe('Session title (e.g., "Architecture review")'),
+  title: z.string().max(500).describe('Session title (e.g., "Architecture review")'),
   agent_id: z
     .string()
+    .max(200)
     .optional()
     .describe('Agent identifier starting this session'),
 }
@@ -65,10 +66,12 @@ export const closeSessionSchema = {
   session_id: z.string().uuid().describe('Session UUID to close'),
   summary: z
     .string()
+    .max(100_000)
     .optional()
     .describe('Summary of what was accomplished in the session'),
   next_entry_point: z
     .string()
+    .max(10_000)
     .optional()
     .describe('Suggested starting point for the next session'),
 }

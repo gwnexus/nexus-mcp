@@ -14,9 +14,10 @@ import { nexusPost } from '../nexus-api.js'
 
 export const addDecisionCommentSchema = {
   decision_id: z.string().uuid().describe('Decision UUID to comment on'),
-  body: z.string().describe('Comment body (markdown supported)'),
+  body: z.string().max(100_000).describe('Comment body (markdown supported)'),
   agent_id: z
     .string()
+    .max(200)
     .optional()
     .describe('Agent identifier if comment is posted by an agent'),
 }
