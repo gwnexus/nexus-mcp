@@ -2,7 +2,7 @@
 
 [![npm](https://img.shields.io/npm/v/@mpowr/nexus-mcp)](https://www.npmjs.com/package/@mpowr/nexus-mcp)
 
-MCP server for the mpowr-nexus platform. Provides the mediation layer between
+MCP server for the Gatewarden Nexus platform. Provides the mediation layer between
 local agent runtimes (terminals) and the Nexus HTTP API.
 
 ## Install
@@ -82,3 +82,9 @@ src/
 
 - [nexus](https://github.com/mpowr-it/nexus) — Backend + Frontend (Next.js/Supabase/Netlify)
 - [nexus-cli](https://github.com/mpowr-it/nexus-cli) — Rust CLI client
+
+## License
+
+Gatewarden Nexus is a product of the Gatewarden product group, owned by
+RelicFrog Holding UG (haftungsbeschränkt). This repository is licensed to
+MPOWR IT GmbH under an enterprise whitelabel license.

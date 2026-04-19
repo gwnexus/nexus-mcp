@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * nexus-mcp -- MCP Server for mpowr-nexus
+ * nexus-mcp -- MCP Server for Gatewarden Nexus
  *
  * Provides Knowledge Access (Layer 1), Coordination (Layer 2),
  * Governance (Layer 3), and Reviews (Layer 4) tools.
