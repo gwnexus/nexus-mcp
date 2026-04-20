@@ -1,14 +1,14 @@
 # nexus-mcp
 
-[![npm](https://img.shields.io/npm/v/@mpowr/nexus-mcp)](https://www.npmjs.com/package/@mpowr/nexus-mcp)
+[![npm](https://img.shields.io/npm/v/@gwdn/nexus-mcp)](https://www.npmjs.com/package/@gwdn/nexus-mcp)
 
-MCP server for the Gatewarden Nexus platform. Provides the mediation layer between
+MCP server for the Nexus platform. Provides the mediation layer between
 local agent runtimes (terminals) and the Nexus HTTP API.
 
 ## Install
 
 ```bash
-npx @mpowr/nexus-mcp
+npx @gwdn/nexus-mcp
 ```
 
 Or add to your agent's MCP configuration:
@@ -18,9 +18,9 @@ Or add to your agent's MCP configuration:
   "mcpServers": {
     "nexus": {
       "command": "npx",
-      "args": ["-y", "@mpowr/nexus-mcp"],
+      "args": ["-y", "@gwdn/nexus-mcp"],
       "env": {
-        "NEXUS_API_URL": "https://nexus.mpowr.tech",
+        "NEXUS_API_URL": "https://nexus.gatewarden.eu",
         "NEXUS_PRIVATE_TOKEN": "nxs_pat_..."
       }
     }
@@ -53,7 +53,7 @@ identity and enforces project-scoped RBAC.
 
 | Variable | Required | Description |
 |---|---|---|
-| `NEXUS_API_URL` | yes | Nexus API base URL (e.g. `https://nexus.mpowr.tech`) |
+| `NEXUS_API_URL` | yes | Nexus API base URL (e.g. `https://nexus.gatewarden.eu`) |
 | `NEXUS_PRIVATE_TOKEN` | yes | nxs_pat_* API token for identity resolution |
 
 ## Development
@@ -80,11 +80,10 @@ src/
 
 ## Related
 
-- [nexus](https://github.com/mpowr-it/nexus) — Backend + Frontend (Next.js/Supabase/Netlify)
-- [nexus-cli](https://github.com/mpowr-it/nexus-cli) — Rust CLI client
+- [nexus](https://github.com/gwnexus/nexus-hub) — Backend + Frontend (Next.js/Supabase/Netlify)
+- [nexus-cli](https://github.com/gwnexus/nexus-cli) — Rust CLI client
 
 ## License
 
-Gatewarden Nexus is a product of the Gatewarden product group, owned by
-RelicFrog Holding UG (haftungsbeschränkt). This repository is licensed to
-MPOWR IT GmbH under an enterprise whitelabel license.
+Nexus is a product of the Nexus Product Group, owned by
+RelicFrog Holding UG (haftungsbeschränkt).

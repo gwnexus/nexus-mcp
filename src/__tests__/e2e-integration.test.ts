@@ -4,7 +4,7 @@
  * These tests exercise the real API client (nexusApi) against a live
  * Nexus backend. They require:
  *
- *   NEXUS_API_URL=https://nexus.mpowr.tech (or localhost:3000)
+ *   NEXUS_API_URL=https://nexus.gatewarden.eu (or localhost:3000)
  *   NEXUS_PRIVATE_TOKEN=nxs_pat_<valid_token>
  *   NEXUS_E2E_PROJECT_ID=<uuid of a test project>
  *

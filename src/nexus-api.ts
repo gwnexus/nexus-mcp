@@ -26,7 +26,7 @@ function getConfig(): { baseUrl: string; token: string } {
 
   if (!url) {
     throw new Error(
-      'MCP: Missing NEXUS_API_URL. Set the base URL of the Nexus app (e.g. https://nexus.mpowr.tech).',
+      'MCP: Missing NEXUS_API_URL. Set the base URL of the Nexus app (e.g. https://nexus.gatewarden.eu).',
     )
   }
   if (!token) {
