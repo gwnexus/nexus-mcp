@@ -78,9 +78,9 @@ describe('MCP Server: withIdentity wrapper', () => {
 })
 
 describe('MCP Server: Schema exports', () => {
-  const EXPECTED_TOOL_COUNT = 38
+  const EXPECTED_TOOL_COUNT = 45
 
-  it('should register exactly 38 tools in server.ts', () => {
+  it('should register exactly 45 tools in server.ts', () => {
     // Static analysis: count server.tool( calls in server.ts as a regression guard.
     // If you add or remove a tool, update EXPECTED_TOOL_COUNT above.
     const serverSource = readFileSync(
