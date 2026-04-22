@@ -38,6 +38,13 @@
  *   - sk_assign: Assign a skill to a project
  *   - sk_unassign: Remove a skill assignment from a project
  *   - sk_export: Export all skill assignments for a project
+ *   - pd_list: List project directives
+ *   - pd_get: Get a specific directive
+ *   - pd_create: Create a new directive
+ *   - pd_update: Update an existing directive
+ *   - pd_delete: Delete a directive
+ *   - pd_toggle: Toggle directive enabled/disabled
+ *   - directive_export: Export enabled directives (CLI format)
  *   - doc_ingest: Push text/markdown content into project knowledge base
  *   - doc_list: List ingested documents for a project
  *   - session_append: Append to a session (write-isolated)
@@ -150,6 +157,22 @@ import {
   skUnassignSchema,
 } from './tools/skill-assign.js'
 import {
+  pdList,
+  pdListSchema,
+  pdGet,
+  pdGetSchema,
+  pdCreate,
+  pdCreateSchema,
+  pdUpdate,
+  pdUpdateSchema,
+  pdDelete,
+  pdDeleteSchema,
+  pdToggle,
+  pdToggleSchema,
+  directiveExport,
+  directiveExportSchema,
+} from './tools/directives.js'
+import {
   updateTaskStatus,
   updateTaskStatusSchema,
 } from './tools/update-task-status.js'
@@ -202,7 +225,7 @@ function withIdentity(handler: (args: any) => Promise<any>) {
 const server = new McpServer(
   {
     name: 'nexus-mcp',
-    version: '0.6.1',
+    version: '0.8.0',
   },
   {
     capabilities: {
@@ -435,6 +458,59 @@ server.tool(
   'Export all skill assignments for a project. Returns the full assignment list with pinned versions and enabled states.',
   skExportSchema,
   withIdentity(skExport),
+)
+
+// ---------------------------------------------------------------------------
+// Layer 2 (continued): Project Directives tools
+// ---------------------------------------------------------------------------
+
+server.tool(
+  'pd_list',
+  'List project directives with optional enabled filter. Returns directives ordered by priority and creation date.',
+  pdListSchema,
+  withIdentity(pdList),
+)
+
+server.tool(
+  'pd_get',
+  'Get a specific project directive by UUID. Returns full directive details.',
+  pdGetSchema,
+  withIdentity(pdGet),
+)
+
+server.tool(
+  'pd_create',
+  'Create a new project directive. Directives are project-scoped rules/policies that guide agent behavior.',
+  pdCreateSchema,
+  withIdentity(pdCreate),
+)
+
+server.tool(
+  'pd_update',
+  'Update an existing project directive. Supports partial updates for title, body, category, priority, and enabled state.',
+  pdUpdateSchema,
+  withIdentity(pdUpdate),
+)
+
+server.tool(
+  'pd_delete',
+  'Delete a project directive by UUID.',
+  pdDeleteSchema,
+  withIdentity(pdDelete),
+)
+
+server.tool(
+  'pd_toggle',
+  'Toggle a project directive enabled/disabled. Omit enabled parameter to invert current state.',
+  pdToggleSchema,
+  withIdentity(pdToggle),
+)
+
+server.tool(
+  'directive_export',
+  'Export all enabled directives for a project in CLI-compatible format.',
+  directiveExportSchema,
+  withIdentity(directiveExport),
 )
 
 // ---------------------------------------------------------------------------
