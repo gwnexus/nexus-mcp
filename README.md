@@ -78,6 +78,31 @@ src/
   __tests__/         # Unit tests (112) and E2E integration tests (34)
 ```
 
+## Known Issues
+
+### npx cache prevents version upgrade
+
+When using `npx` to run the MCP server, npm caches the resolved package in
+`~/.npm/_npx/`. Subsequent invocations may continue to use the cached
+(outdated) version even after a new release is published — especially in
+terminals that were started before the update.
+
+**Symptoms:** MCP tools report an older version, or new tools/fixes are missing.
+
+**Fix:** Before starting OpenCode, clear stale npx caches:
+
+```bash
+find ~/.npm/_npx -path "*/node_modules/@gwdn/nexus-mcp/package.json" \
+  -exec node -e "if(require('{}').version!=='0.8.1') console.log(require('path').resolve('{}','../../..'))" \; \
+  | xargs rm -rf
+```
+
+Then start OpenCode normally. npx will fetch the latest version into a fresh
+cache entry.
+
+> **Tip:** To avoid this entirely, pin `@latest` in your MCP config args:
+> `["--yes", "@gwdn/nexus-mcp@latest"]`
+
 ## Related
 
 - [nexus](https://github.com/gwnexus/nexus-hub) — Backend + Frontend (Next.js/Supabase/Netlify)
