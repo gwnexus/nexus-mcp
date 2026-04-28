@@ -110,6 +110,18 @@ import {
   ingestDocumentSchema,
 } from './tools/ingest-document.js'
 import {
+  classifyDocument,
+  classifyDocumentSchema,
+} from './tools/classify-document.js'
+import {
+  updateDocument,
+  updateDocumentSchema,
+} from './tools/update-document.js'
+import {
+  deleteDocument,
+  deleteDocumentSchema,
+} from './tools/delete-document.js'
+import {
   acknowledgeLetter,
   acknowledgeLetterSchema,
   listInbox,
@@ -352,6 +364,27 @@ server.tool(
   'List ingested documents for a project with optional source filtering. Returns documents ordered by creation date (newest first).',
   listDocumentsSchema,
   withIdentity(listDocuments),
+)
+
+server.tool(
+  'doc_classify',
+  'Update the classification of an ingest item. Valid classifications: unclassified, research_note, planning_item, decision_input, reference, archive.',
+  classifyDocumentSchema,
+  withIdentity(classifyDocument),
+)
+
+server.tool(
+  'doc_update',
+  'Update title, body, or source_url of an ingest item. Supports full body replacement or append mode via append_body. At least one field must be provided.',
+  updateDocumentSchema,
+  withIdentity(updateDocument),
+)
+
+server.tool(
+  'doc_delete',
+  'Delete an ingest item from a project knowledge base. This action is irreversible.',
+  deleteDocumentSchema,
+  withIdentity(deleteDocument),
 )
 
 server.tool(
