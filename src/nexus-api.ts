@@ -6,8 +6,18 @@
  * via the NEXUS_PRIVATE_TOKEN (nxs_pat_*) Bearer token.
  */
 
+import { getMachineId } from './machine-id.js'
+
 let _baseUrl: string | null = null
 let _token: string | null = null
+let _machineId: string | null = null
+
+// Eagerly resolve machine ID (sync, cached after first call)
+try {
+  _machineId = getMachineId()
+} catch {
+  // machine_id is optional enrichment — never block startup
+}
 
 /**
  * Reset the cached API configuration. Used by E2E tests to switch
@@ -16,6 +26,7 @@ let _token: string | null = null
 export function resetApiConfig(): void {
   _baseUrl = null
   _token = null
+  _machineId = getMachineId()
 }
 
 function getConfig(): { baseUrl: string; token: string } {
@@ -60,6 +71,7 @@ export async function nexusApi<T = unknown>(
   options: {
     method?: 'GET' | 'POST' | 'PATCH' | 'DELETE'
     body?: unknown
+    headers?: Record<string, string>
     timeoutMs?: number
   } = {},
 ): Promise<NexusApiResponse<T>> {
@@ -70,6 +82,8 @@ export async function nexusApi<T = unknown>(
   const headers: Record<string, string> = {
     Authorization: `Bearer ${token}`,
     'Content-Type': 'application/json',
+    ...(_machineId ? { 'X-Nexus-Machine-Id': _machineId } : {}),
+    ...(options.headers ?? {}),
   }
 
   try {

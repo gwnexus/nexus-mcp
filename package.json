@@ -1,6 +1,6 @@
 {
   "name": "@gwdn/nexus-mcp",
-  "version": "0.8.4",
+  "version": "0.8.5",
   "description": "MCP server for the Nexus platform",
   "type": "module",
   "main": "dist/server.js",
