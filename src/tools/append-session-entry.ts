@@ -41,6 +41,14 @@ export const appendSessionEntrySchema = {
     .optional()
     .describe('UUID of the linked entity'),
   agent_id: z.string().max(200).optional().describe('Agent identifier if applicable'),
+  metadata: z
+    .string()
+    .max(10_000)
+    .optional()
+    .describe(
+      'JSON string of metadata to merge into the session entry. ' +
+        'Example: \'{"model": "claude-opus-4", "toolstack": "opencode", "machine_id": "..."}\'',
+    ),
 }
 
 type AppendSessionEntryArgs = {
@@ -51,9 +59,27 @@ type AppendSessionEntryArgs = {
   linked_entity_id?: string
   user_id: string
   agent_id?: string
+  metadata?: string
 }
 
 export async function appendSessionEntry(args: AppendSessionEntryArgs) {
+  let parsedMetadata: Record<string, unknown> | undefined
+  if (args.metadata) {
+    try {
+      parsedMetadata = JSON.parse(args.metadata)
+    } catch {
+      return {
+        content: [
+          {
+            type: 'text' as const,
+            text: JSON.stringify({ error: 'metadata must be a valid JSON string' }, null, 2),
+          },
+        ],
+        isError: true,
+      }
+    }
+  }
+
   const result = await nexusPost('/api/mcp/sessions', {
     action: 'session_append',
     session_id: args.session_id,
@@ -62,6 +88,7 @@ export async function appendSessionEntry(args: AppendSessionEntryArgs) {
     agent_id: args.agent_id,
     linked_entity_type: args.linked_entity_type,
     linked_entity_id: args.linked_entity_id,
+    ...(parsedMetadata ? { metadata: parsedMetadata } : {}),
   })
 
   if (!result.ok) {

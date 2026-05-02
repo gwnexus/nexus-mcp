@@ -146,6 +146,7 @@ describe('MCP Server: Schema exports', () => {
 
     const appendEntry = await import('../tools/append-session-entry.js')
     expect(appendEntry.appendSessionEntrySchema).toBeDefined()
+    expect(appendEntry.appendSessionEntrySchema.metadata).toBeDefined()
     expect(typeof appendEntry.appendSessionEntry).toBe('function')
 
     const letters = await import('../tools/letters.js')

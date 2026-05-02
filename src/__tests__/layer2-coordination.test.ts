@@ -206,6 +206,82 @@ describe('Layer 2: session_append', () => {
 
     expect(result.isError).toBe(true)
   })
+
+  it('should forward parsed metadata to the API', async () => {
+    vi.mocked(nexusPost).mockResolvedValue(
+      mockApiSuccess({
+        action: 'session_append',
+        entry_id: TEST_IDS.entryId,
+        session_id: TEST_IDS.sessionId,
+        entry_type: 'note',
+        project_id: TEST_IDS.projectId,
+      }),
+    )
+
+    const { appendSessionEntry } = await import('../tools/append-session-entry.js')
+    const metadata = JSON.stringify({
+      model: 'claude-opus-4',
+      toolstack: 'opencode',
+      machine_id: '00000000-0000-0000-0000-000000000001',
+    })
+    const result = await appendSessionEntry({
+      session_id: TEST_IDS.sessionId,
+      entry_type: 'note',
+      summary: 'Entry with metadata',
+      user_id: TEST_IDS.userId,
+      metadata,
+    })
+
+    expect(result.isError).toBeUndefined()
+    expect(vi.mocked(nexusPost)).toHaveBeenCalledWith(
+      '/api/mcp/sessions',
+      expect.objectContaining({
+        metadata: {
+          model: 'claude-opus-4',
+          toolstack: 'opencode',
+          machine_id: '00000000-0000-0000-0000-000000000001',
+        },
+      }),
+    )
+  })
+
+  it('should return error for invalid metadata JSON', async () => {
+    const { appendSessionEntry } = await import('../tools/append-session-entry.js')
+    const result = await appendSessionEntry({
+      session_id: TEST_IDS.sessionId,
+      entry_type: 'note',
+      summary: 'Bad metadata',
+      user_id: TEST_IDS.userId,
+      metadata: '{invalid json',
+    })
+
+    expect(result.isError).toBe(true)
+    const parsed = parseToolResponse(result)
+    expect(parsed.error).toContain('valid JSON')
+  })
+
+  it('should omit metadata key when not provided', async () => {
+    vi.mocked(nexusPost).mockResolvedValue(
+      mockApiSuccess({
+        action: 'session_append',
+        entry_id: TEST_IDS.entryId,
+        session_id: TEST_IDS.sessionId,
+        entry_type: 'note',
+        project_id: TEST_IDS.projectId,
+      }),
+    )
+
+    const { appendSessionEntry } = await import('../tools/append-session-entry.js')
+    await appendSessionEntry({
+      session_id: TEST_IDS.sessionId,
+      entry_type: 'note',
+      summary: 'No metadata',
+      user_id: TEST_IDS.userId,
+    })
+
+    const call = vi.mocked(nexusPost).mock.calls[0][1] as Record<string, unknown>
+    expect(call).not.toHaveProperty('metadata')
+  })
 })
 
 // ---------------------------------------------------------------------------
