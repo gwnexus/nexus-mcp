@@ -25,6 +25,8 @@ export const appendSessionEntrySchema = {
       'handoff_recorded',
       'note',
       'correction',
+      'security_scan',
+      'performance_scan',
     ])
     .describe('Type of session entry'),
   summary: z.string().max(100_000).describe('Entry content / summary text'),
