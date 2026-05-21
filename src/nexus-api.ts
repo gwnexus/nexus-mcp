@@ -57,7 +57,7 @@ function getConfig(): { baseUrl: string; token: string } {
   _baseUrl = url.replace(/\/$/, '')
   _token = token.trim()
 
-  return { baseUrl: _baseUrl, token: _token }
+  return { baseUrl: _baseUrl!, token: _token! }
 }
 
 export interface NexusApiResponse<T = unknown> {
