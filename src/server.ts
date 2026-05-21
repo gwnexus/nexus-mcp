@@ -237,7 +237,7 @@ function withIdentity(handler: (args: any) => Promise<any>) {
 const server = new McpServer(
   {
     name: 'nexus-mcp',
-    version: '0.8.0',
+    version: '0.8.7',
   },
   {
     capabilities: {

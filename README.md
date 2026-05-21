@@ -89,12 +89,11 @@ terminals that were started before the update.
 
 **Symptoms:** MCP tools report an older version, or new tools/fixes are missing.
 
-**Fix:** Before starting OpenCode, clear stale npx caches:
+**Fix:** Before starting OpenCode, clear all npx caches for this package:
 
 ```bash
-find ~/.npm/_npx -path "*/node_modules/@gwdn/nexus-mcp/package.json" \
-  -exec node -e "if(require('{}').version!=='0.8.1') console.log(require('path').resolve('{}','../../..'))" \; \
-  | xargs rm -rf
+find ~/.npm/_npx -path "*/node_modules/@gwdn/nexus-mcp" -type d \
+  -exec rm -rf {} + 2>/dev/null
 ```
 
 Then start OpenCode normally. npx will fetch the latest version into a fresh
