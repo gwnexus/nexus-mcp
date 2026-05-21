@@ -6,17 +6,24 @@
  * via the NEXUS_PRIVATE_TOKEN (nxs_pat_*) Bearer token.
  */
 
+import { hostname } from 'node:os'
 import { getMachineId } from './machine-id.js'
 
 let _baseUrl: string | null = null
 let _token: string | null = null
 let _machineId: string | null = null
+let _machineName: string | null = null
 
-// Eagerly resolve machine ID (sync, cached after first call)
+// Eagerly resolve machine ID and hostname (sync, cached after first call)
 try {
   _machineId = getMachineId()
 } catch {
   // machine_id is optional enrichment — never block startup
+}
+try {
+  _machineName = hostname()
+} catch {
+  // hostname is optional enrichment
 }
 
 /**
@@ -83,6 +90,7 @@ export async function nexusApi<T = unknown>(
     Authorization: `Bearer ${token}`,
     'Content-Type': 'application/json',
     ...(_machineId ? { 'X-Nexus-Machine-Id': _machineId } : {}),
+    ...(_machineName ? { 'X-Nexus-Machine-Name': _machineName } : {}),
     ...(options.headers ?? {}),
   }
 
