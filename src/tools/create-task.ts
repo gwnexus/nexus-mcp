@@ -13,8 +13,8 @@ export const createTaskSchema = {
   title: z.string().max(500).describe('Task title'),
   description: z.string().max(100_000).optional().describe('Task description'),
   priority: z
-    .enum(['low', 'normal', 'high', 'urgent'])
-    .default('normal')
+    .enum(['low', 'medium', 'high', 'urgent'])
+    .default('medium')
     .describe('Task priority'),
   assignee: z.string().uuid().optional().describe('UUID of the assigned user'),
   status: z
@@ -41,7 +41,7 @@ export async function createTask(args: CreateTaskArgs) {
     project_id: args.project_id,
     title: args.title,
     description: args.description,
-    priority: args.priority ?? 'normal',
+    priority: args.priority ?? 'medium',
     assignee: args.assignee,
     status: args.status ?? 'open',
   })
