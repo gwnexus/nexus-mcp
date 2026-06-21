@@ -13,6 +13,8 @@ let _baseUrl: string | null = null
 let _token: string | null = null
 let _machineId: string | null = null
 let _machineName: string | null = null
+let _model: string | null = null
+let _toolstack: string | null = null
 
 // Eagerly resolve machine ID and hostname (sync, cached after first call)
 try {
@@ -25,6 +27,9 @@ try {
 } catch {
   // hostname is optional enrichment
 }
+// Model + toolstack from environment (optional — enriches session entries)
+_model = process.env.NEXUS_MODEL ?? null
+_toolstack = process.env.NEXUS_TOOLSTACK ?? null
 
 /**
  * Reset the cached API configuration. Used by E2E tests to switch
@@ -34,6 +39,8 @@ export function resetApiConfig(): void {
   _baseUrl = null
   _token = null
   _machineId = getMachineId()
+  _model = process.env.NEXUS_MODEL ?? null
+  _toolstack = process.env.NEXUS_TOOLSTACK ?? null
 }
 
 function getConfig(): { baseUrl: string; token: string } {
@@ -91,6 +98,8 @@ export async function nexusApi<T = unknown>(
     'Content-Type': 'application/json',
     ...(_machineId ? { 'X-Nexus-Machine-Id': _machineId } : {}),
     ...(_machineName ? { 'X-Nexus-Machine-Name': _machineName } : {}),
+    ...(_model ? { 'X-Nexus-Model': _model } : {}),
+    ...(_toolstack ? { 'X-Nexus-Toolstack': _toolstack } : {}),
     ...(options.headers ?? {}),
   }
 
