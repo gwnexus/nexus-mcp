@@ -13,7 +13,12 @@ import { nexusPost } from '../nexus-api.js'
 // ---------------------------------------------------------------------------
 
 export const createLetterSchema = {
-  project_id: z.string().uuid().describe('Project UUID'),
+  project_id: z.string().uuid().describe('Project UUID of the RECIPIENT project (to_project_id)'),
+  from_project_id: z
+    .string()
+    .uuid()
+    .optional()
+    .describe('Project UUID of the SENDER project — required for cross-project vault letters'),
   from_actor: z.string().max(200).describe('Sender identifier (agent name or user)'),
   to_actor: z.string().max(200).describe('Recipient identifier (agent name or user)'),
   subject: z.string().max(500).describe('Letter subject'),
@@ -36,6 +41,7 @@ export const createLetterSchema = {
 
 type CreateLetterArgs = {
   project_id: string
+  from_project_id?: string
   from_actor: string
   to_actor: string
   subject: string
@@ -51,6 +57,7 @@ export async function createLetter(args: CreateLetterArgs) {
   const result = await nexusPost('/api/mcp/letters', {
     action: 'vl_create',
     project_id: args.project_id,
+    from_project_id: args.from_project_id,
     from_actor: args.from_actor,
     to_actor: args.to_actor,
     subject: args.subject,
