@@ -1,9 +1,10 @@
-# nexus-mcp
+# Nexus MCP
 
 [![npm](https://img.shields.io/npm/v/@gwdn/nexus-mcp)](https://www.npmjs.com/package/@gwdn/nexus-mcp)
+[![License: Apache-2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
+[![Node.js 20+](https://img.shields.io/badge/node-20%2B-green.svg)](https://nodejs.org)
 
-MCP server for the Nexus platform. Provides the mediation layer between
-local agent runtimes (terminals) and the Nexus HTTP API.
+MCP server for the [Gatewarden Nexus](https://nexus.gatewarden.eu) platform. Provides the mediation layer between local agent runtimes and the Nexus HTTP API via the [Model Context Protocol](https://modelcontextprotocol.io) (stdio transport).
 
 ## Install
 
@@ -11,14 +12,14 @@ local agent runtimes (terminals) and the Nexus HTTP API.
 npx @gwdn/nexus-mcp
 ```
 
-Or add to your agent's MCP configuration:
+Or add to your agent's MCP configuration (OpenCode, Claude Code, Cursor, etc.):
 
 ```json
 {
   "mcpServers": {
     "nexus": {
       "command": "npx",
-      "args": ["-y", "@gwdn/nexus-mcp"],
+      "args": ["-y", "@gwdn/nexus-mcp@latest"],
       "env": {
         "NEXUS_API_URL": "https://nexus.gatewarden.eu",
         "NEXUS_PRIVATE_TOKEN": "nxs_pat_..."
@@ -30,17 +31,62 @@ Or add to your agent's MCP configuration:
 
 ## Architecture
 
-The server exposes 38 tools across 4 layers via the Model Context Protocol
-(stdio transport). All data access goes through the Nexus API — the MCP server
-has no direct database access.
+The server exposes 38 tools across 4 layers. All data access goes through the Nexus HTTP API -- the MCP server has no direct database access.
 
-- **Layer 1 — Knowledge Access:** kb_search, kb_memory, kb_get, kb_related, project_list
-- **Layer 2 — Coordination:** vault letters (vl_create/vl_reply/vl_inbox/vl_outbox/vl_ack),
-  tasks (task_create/task_update/task_note/task_list), sessions (session_create/session_list/session_close/session_append),
-  decision comments (dc_add/dc_list), documents (doc_ingest/doc_list),
-  skills (sk_list/sk_get/sk_create/sk_update/sk_activate/sk_assign/sk_unassign/sk_export)
-- **Layer 3 — Governance:** ADR lifecycle (adr_create/adr_submit/adr_decide)
-- **Layer 4 — Reviews:** entity reviews (rv_list/rv_get/rv_create/rv_decide/rv_comment)
+```
+Agent Runtime (OpenCode, Claude, Cursor, ...)
+    |
+    |  stdio (MCP protocol)
+    v
+nexus-mcp (this package)
+    |
+    |  HTTPS (Bearer token auth)
+    v
+Nexus API (nexus.gatewarden.eu)
+    |
+    v
+Supabase (PostgreSQL + RLS)
+```
+
+### Layer 1 -- Knowledge Access (5 tools)
+
+| Tool | Description |
+|------|-------------|
+| `kb_search` | Full-text, semantic, or hybrid search across project entities |
+| `kb_memory` | Structured project memory snapshot (ADRs, tasks, sessions, letters) |
+| `kb_get` | Retrieve a specific entity by type and ID |
+| `kb_related` | Find entities related to a given entity |
+| `project_list` | List accessible projects |
+
+### Layer 2 -- Coordination (22 tools)
+
+| Group | Tools |
+|-------|-------|
+| **Sessions** | `session_create`, `session_close`, `session_list`, `session_append` |
+| **Tasks** | `task_create`, `task_update`, `task_list`, `task_note` |
+| **Vault Letters** | `vl_create`, `vl_reply`, `vl_inbox`, `vl_outbox`, `vl_ack` |
+| **Documents** | `doc_ingest`, `doc_list`, `doc_classify`, `doc_update`, `doc_delete` |
+| **Skills** | `sk_list`, `sk_get`, `sk_create`, `sk_update`, `sk_activate`, `sk_assign`, `sk_unassign`, `sk_export` |
+| **Decision Comments** | `dc_add`, `dc_list` |
+| **Directives** | `pd_list`, `pd_get`, `pd_create`, `pd_update`, `pd_delete`, `pd_toggle`, `directive_export` |
+
+### Layer 3 -- Governance (3 tools)
+
+| Tool | Description |
+|------|-------------|
+| `adr_create` | Create a new ADR in draft status |
+| `adr_submit` | Submit a draft ADR for review |
+| `adr_decide` | Accept or reject an ADR under review |
+
+### Layer 4 -- Reviews (5 tools)
+
+| Tool | Description |
+|------|-------------|
+| `rv_list` | List reviews with optional filters |
+| `rv_get` | Get review details by ID or entity |
+| `rv_create` | Create a new review for a skill or agent |
+| `rv_decide` | Transition a review state (submit, accept, reject, ...) |
+| `rv_comment` | Add a comment to a review |
 
 ## Authentication
 
@@ -54,14 +100,17 @@ identity and enforces project-scoped RBAC.
 | Variable | Required | Description |
 |---|---|---|
 | `NEXUS_API_URL` | yes | Nexus API base URL (e.g. `https://nexus.gatewarden.eu`) |
-| `NEXUS_PRIVATE_TOKEN` | yes | nxs_pat_* API token for identity resolution |
+| `NEXUS_PRIVATE_TOKEN` | yes | `nxs_pat_*` API token for identity resolution |
+| `NEXUS_MODEL` | no | Model identifier for session metadata enrichment |
+| `NEXUS_TOOLSTACK` | no | Toolstack identifier (e.g. `opencode`, `claude-code`) |
+| `NEXUS_SEC_OPENAI_API_KEY` | no | OpenAI API key for semantic search embeddings |
 
 ## Development
 
 ```bash
 npm install
 npm run typecheck   # TypeScript check
-npm test            # Run tests
+npm test            # Run tests (127 unit + 34 E2E)
 npm run build       # Compile to dist/
 npm run dev         # Run via tsx (development)
 npm start           # Run compiled JS (production)
@@ -70,12 +119,18 @@ npm start           # Run compiled JS (production)
 ## Project Structure
 
 ```
-src/
-  server.ts          # MCP server entry point (stdio transport)
-  auth.ts            # Token-based identity resolution via Nexus API
-  nexus-api.ts       # HTTP client for Nexus API (nexusGet, nexusPost)
-  tools/             # Tool modules (38 tools total)
-  __tests__/         # Unit tests (112) and E2E integration tests (34)
+nexus-mcp/
+├── src/
+│   ├── server.ts          # MCP server entry point (stdio transport)
+│   ├── auth.ts            # Token-based identity resolution via Nexus API
+│   ├── nexus-api.ts       # HTTP client for Nexus API (nexusGet, nexusPost)
+│   ├── machine-id.ts      # Machine identification for session metadata
+│   ├── tools/             # 24 tool modules (38 tools total)
+│   └── __tests__/         # 12 test files (127 unit + 34 E2E)
+├── LICENSE                # Apache-2.0
+├── SECURITY.md            # Security policy
+├── CONTRIBUTING.md        # Contribution guidelines
+└── CODE_OF_CONDUCT.md     # Contributor Covenant
 ```
 
 ## Known Issues
@@ -84,30 +139,26 @@ src/
 
 When using `npx` to run the MCP server, npm caches the resolved package in
 `~/.npm/_npx/`. Subsequent invocations may continue to use the cached
-(outdated) version even after a new release is published — especially in
-terminals that were started before the update.
+(outdated) version even after a new release is published.
 
 **Symptoms:** MCP tools report an older version, or new tools/fixes are missing.
 
-**Fix:** Before starting OpenCode, clear all npx caches for this package:
+**Fix:** Clear all npx caches for this package before starting your agent:
 
 ```bash
 find ~/.npm/_npx -path "*/node_modules/@gwdn/nexus-mcp" -type d \
   -exec rm -rf {} + 2>/dev/null
 ```
 
-Then start OpenCode normally. npx will fetch the latest version into a fresh
-cache entry.
-
-> **Tip:** To avoid this entirely, pin `@latest` in your MCP config args:
+> **Tip:** Pin `@latest` in your MCP config args to always resolve the newest version:
 > `["--yes", "@gwdn/nexus-mcp@latest"]`
 
 ## Related
 
-- [nexus](https://github.com/gwnexus/nexus-hub) — Backend + Frontend (Next.js/Supabase/Netlify)
-- [nexus-cli](https://github.com/gwnexus/nexus-cli) — Rust CLI client
+- [Gatewarden Nexus](https://nexus.gatewarden.eu) -- Platform (Next.js / Supabase)
+- [nexus-cli](https://github.com/gwnexus/nexus-cli) -- Workspace CLI (Rust)
+- [nexus-link](https://github.com/gwnexus/nexus-link) -- Hardware agent (Rust)
 
 ## License
 
-Nexus is a product of the Nexus Product Group, owned by
-RelicFrog Holding UG (haftungsbeschränkt).
+[Apache-2.0](LICENSE) -- Copyright (c) 2026 RelicFrog Holding UG (haftungsbeschraenkt)

@@ -1,12 +1,30 @@
 {
   "name": "@gwdn/nexus-mcp",
-  "version": "0.8.11",
-  "description": "MCP server for the Nexus platform",
+  "version": "0.9.0",
+  "description": "MCP server for the Gatewarden Nexus platform — mediation layer between local agent runtimes and the Nexus HTTP API",
+  "license": "Apache-2.0",
   "type": "module",
   "main": "dist/server.js",
   "bin": {
     "nexus-mcp": "dist/server.js"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/gwnexus/nexus-mcp.git"
+  },
+  "homepage": "https://nexus.gatewarden.eu",
+  "bugs": {
+    "url": "https://github.com/gwnexus/nexus-mcp/issues"
+  },
+  "author": "RelicFrog Holding UG (haftungsbeschraenkt)",
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "nexus",
+    "ai-agent",
+    "agent-coordination",
+    "knowledge-management"
+  ],
   "scripts": {
     "build": "tsc && chmod +x dist/server.js",
     "prepublishOnly": "npm run build",
