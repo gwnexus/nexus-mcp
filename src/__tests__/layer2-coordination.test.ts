@@ -435,7 +435,7 @@ describe('Layer 2: Letter tools', () => {
         }),
       )
 
-      const { createLetter } = await import('../tools/letters.js')
+      const { createLetter } = await import('../tools/dispatches.js')
       const result = await createLetter({
         project_id: TEST_IDS.projectId,
         from_actor: 'nexus-app-agent',
@@ -456,7 +456,7 @@ describe('Layer 2: Letter tools', () => {
     it('should return error on API failure', async () => {
       vi.mocked(nexusPost).mockResolvedValue(mockApiError('Failed to create letter'))
 
-      const { createLetter } = await import('../tools/letters.js')
+      const { createLetter } = await import('../tools/dispatches.js')
       const result = await createLetter({
         project_id: TEST_IDS.projectId,
         from_actor: 'a',
@@ -480,7 +480,7 @@ describe('Layer 2: Letter tools', () => {
         }),
       )
 
-      const { replyLetter } = await import('../tools/letters.js')
+      const { replyLetter } = await import('../tools/dispatches.js')
       const result = await replyLetter({
         letter_id: TEST_IDS.letterId,
         body: 'Reply content',
@@ -495,7 +495,7 @@ describe('Layer 2: Letter tools', () => {
     it('should return error on API failure', async () => {
       vi.mocked(nexusPost).mockResolvedValue(mockApiError('Letter not found', 404))
 
-      const { replyLetter } = await import('../tools/letters.js')
+      const { replyLetter } = await import('../tools/dispatches.js')
       const result = await replyLetter({
         letter_id: TEST_IDS.letterId,
         body: 'Reply to missing letter',
@@ -515,7 +515,7 @@ describe('Layer 2: Letter tools', () => {
         }),
       )
 
-      const { replyLetter } = await import('../tools/letters.js')
+      const { replyLetter } = await import('../tools/dispatches.js')
       const result = await replyLetter({
         letter_id: TEST_IDS.letterId,
         body: 'Acknowledged',
@@ -558,7 +558,7 @@ describe('Layer 2: Inbox and Outbox tools', () => {
         }),
       )
 
-      const { listInbox } = await import('../tools/letter-inbox.js')
+      const { letterInbox: listInbox } = await import('../tools/dispatches.js')
       const result = await listInbox({
         project_id: TEST_IDS.projectId,
         user_id: TEST_IDS.userId,
@@ -574,7 +574,7 @@ describe('Layer 2: Inbox and Outbox tools', () => {
     it('should return error on API failure', async () => {
       vi.mocked(nexusPost).mockResolvedValue(mockApiError('Failed to list inbox'))
 
-      const { listInbox } = await import('../tools/letter-inbox.js')
+      const { letterInbox: listInbox } = await import('../tools/dispatches.js')
       const result = await listInbox({
         project_id: TEST_IDS.projectId,
         user_id: TEST_IDS.userId,
@@ -603,7 +603,7 @@ describe('Layer 2: Inbox and Outbox tools', () => {
         }),
       )
 
-      const { listOutbox } = await import('../tools/letter-inbox.js')
+      const { letterOutbox: listOutbox } = await import('../tools/dispatches.js')
       const result = await listOutbox({
         project_id: TEST_IDS.projectId,
         user_id: TEST_IDS.userId,
@@ -618,7 +618,7 @@ describe('Layer 2: Inbox and Outbox tools', () => {
     it('should return error on API failure', async () => {
       vi.mocked(nexusPost).mockResolvedValue(mockApiError('Project not found', 404))
 
-      const { listOutbox } = await import('../tools/letter-inbox.js')
+      const { letterOutbox: listOutbox } = await import('../tools/dispatches.js')
       const result = await listOutbox({
         project_id: TEST_IDS.projectId,
         user_id: TEST_IDS.userId,
@@ -638,7 +638,7 @@ describe('Layer 2: Inbox and Outbox tools', () => {
         }),
       )
 
-      const { acknowledgeLetter } = await import('../tools/letter-inbox.js')
+      const { ackLetter: acknowledgeLetter } = await import('../tools/dispatches.js')
       const result = await acknowledgeLetter({
         letter_id: TEST_IDS.letterId,
         user_id: TEST_IDS.userId,
@@ -653,7 +653,7 @@ describe('Layer 2: Inbox and Outbox tools', () => {
     it('should return error on API failure', async () => {
       vi.mocked(nexusPost).mockResolvedValue(mockApiError('Letter not found', 404))
 
-      const { acknowledgeLetter } = await import('../tools/letter-inbox.js')
+      const { ackLetter: acknowledgeLetter } = await import('../tools/dispatches.js')
       const result = await acknowledgeLetter({
         letter_id: TEST_IDS.letterId,
         user_id: TEST_IDS.userId,

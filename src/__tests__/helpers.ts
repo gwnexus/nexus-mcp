@@ -42,9 +42,11 @@ export function parseToolResponse(result: {
 export const TEST_IDS = {
   userId: '83a37012-8add-428f-8bc3-d56c84291671',
   projectId: 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee',
+  targetProjectId: 'bbbbbbbb-cccc-dddd-eeee-ffffffffffff',
   sessionId: '11111111-2222-3333-4444-555555555555',
   taskId: '22222222-3333-4444-5555-666666666666',
   letterId: '33333333-4444-5555-6666-777777777777',
+  dispatchId: '33333333-4444-5555-6666-777777777777',  // same UUID, dispatch is the new name
   adrId: '44444444-5555-6666-7777-888888888888',
   entryId: '55555555-6666-7777-8888-999999999999',
   noteId: '66666666-7777-8888-9999-aaaaaaaaaaaa',
