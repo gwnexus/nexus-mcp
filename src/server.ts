@@ -134,7 +134,31 @@ import {
   createLetterSchema,
   replyLetter,
   replyLetterSchema,
-} from './tools/letters.js'
+  dispatchCreate,
+  dispatchCreateSchema,
+  dispatchReply,
+  dispatchReplySchema,
+  dispatchInbox,
+  dispatchInboxSchema,
+  dispatchOutbox,
+  dispatchOutboxSchema,
+  dispatchAck,
+  dispatchAckSchema,
+  dispatchAssign,
+  dispatchAssignSchema,
+  dispatchForward,
+  dispatchForwardSchema,
+  dispatchResolve,
+  dispatchResolveSchema,
+  dispatchClose,
+  dispatchCloseSchema,
+  dispatchSweep,
+  dispatchSweepSchema,
+  dispatchGet,
+  dispatchGetSchema,
+  dispatchRelated,
+  dispatchRelatedSchema,
+} from './tools/dispatches.js'
 import {
   listDocuments,
   listDocumentsSchema,
@@ -291,37 +315,123 @@ server.tool(
 
 server.tool(
   'vl_create',
-  'Create a new vault letter for agent-to-agent or agent-to-human coordination. Returns the new letter ID and status.',
+  'Create a new Nexus Dispatch for agent-to-agent or agent-to-human coordination (legacy alias for dispatch_create). Returns the new dispatch ID and status.',
   createLetterSchema,
   withIdentity(createLetter),
 )
 
 server.tool(
   'vl_reply',
-  'Reply to an existing vault letter with a new message. Optionally update the letter status. Enforces append-only semantics.',
+  'Append a reply to an existing Nexus Dispatch (legacy alias for dispatch_reply). Enforces append-only semantics.',
   replyLetterSchema,
   withIdentity(replyLetter),
 )
 
 server.tool(
   'vl_inbox',
-  'List vault letters addressed to the calling agent or user. Returns letters scoped to the given project, ordered by blocking status and recency. Supports status filtering.',
+  'List Dispatches addressed to the calling agent or project (legacy alias for dispatch_inbox). Ordered by blocking status and recency.',
   listInboxSchema,
   withIdentity(listInbox),
 )
 
 server.tool(
   'vl_outbox',
-  'List vault letters sent by the calling agent or user. Returns letters scoped to the given project, ordered by recency. Supports status filtering.',
+  'List Dispatches sent by the calling agent or project (legacy alias for dispatch_outbox). Ordered by recency.',
   listOutboxSchema,
   withIdentity(listOutbox),
 )
 
 server.tool(
   'vl_ack',
-  'Acknowledge receipt of a new vault letter. Transitions the letter from new to acknowledged status and appends an acknowledgment message.',
+  'Acknowledge receipt of an open Dispatch (legacy alias for dispatch_ack). Transitions from open to acknowledged.',
   acknowledgeLetterSchema,
   withIdentity(acknowledgeLetter),
+)
+
+// ── Nexus Dispatch tools (dispatch_*) — ADR-0052 ──────────────────────────────
+
+server.tool(
+  'dispatch_create',
+  'Create a new routed Nexus Dispatch for agent-to-agent, agent-to-human, or cross-project coordination. Routing is derived from project context and actor resolution.',
+  dispatchCreateSchema,
+  withIdentity(dispatchCreate),
+)
+
+server.tool(
+  'dispatch_reply',
+  'Append a reply or timeline entry to an existing Dispatch. Optionally update the Dispatch status (enforces allowed transitions).',
+  dispatchReplySchema,
+  withIdentity(dispatchReply),
+)
+
+server.tool(
+  'dispatch_inbox',
+  'List Dispatches addressed to the calling agent or project. Supports scope filters (blocking, waiting_on_me, cross_project) and status filters.',
+  dispatchInboxSchema,
+  withIdentity(dispatchInbox),
+)
+
+server.tool(
+  'dispatch_outbox',
+  'List Dispatches created by the calling agent or project. Ordered by recency.',
+  dispatchOutboxSchema,
+  withIdentity(dispatchOutbox),
+)
+
+server.tool(
+  'dispatch_ack',
+  'Acknowledge receipt of an open Dispatch. Transitions status from open to acknowledged and appends a system note.',
+  dispatchAckSchema,
+  withIdentity(dispatchAck),
+)
+
+server.tool(
+  'dispatch_assign',
+  'Assign or reassign a Dispatch to an actor. Resolves the actor within the project registry.',
+  dispatchAssignSchema,
+  withIdentity(dispatchAssign),
+)
+
+server.tool(
+  'dispatch_forward',
+  'Forward a Dispatch to another actor or linked project. Requires a project_link between source and target.',
+  dispatchForwardSchema,
+  withIdentity(dispatchForward),
+)
+
+server.tool(
+  'dispatch_resolve',
+  'Mark a Dispatch as resolved with an optional resolution note. Appends the resolution as a message and records resolved_at.',
+  dispatchResolveSchema,
+  withIdentity(dispatchResolve),
+)
+
+server.tool(
+  'dispatch_close',
+  'Close a resolved Dispatch. Terminal state — no further transitions allowed after closing.',
+  dispatchCloseSchema,
+  withIdentity(dispatchClose),
+)
+
+server.tool(
+  'dispatch_sweep',
+  'Return a prioritized session-start overview of relevant Dispatches: blocking, overdue, waiting-on-me, new assignments, and recent updates. Use at the start of every agent session.',
+  dispatchSweepSchema,
+  withIdentity(dispatchSweep),
+)
+
+server.tool(
+  'dispatch_get',
+  'Fetch a full Dispatch with its append-only message timeline, participant list, and metadata.',
+  dispatchGetSchema,
+  withIdentity(dispatchGet),
+)
+
+server.tool(
+  'dispatch_related',
+  'Find structurally related Dispatches (same project pair, same type). Useful for loop prevention and duplicate detection before creating new Dispatches.',
+  dispatchRelatedSchema,
+  withIdentity(dispatchRelated),
 )
 
 server.tool(
