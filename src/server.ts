@@ -25,8 +25,9 @@
  *   - vl_outbox: List letters sent by the calling agent/user
  *   - vl_ack: Acknowledge receipt of a new vault letter
  *   - task_create: Create a task in a project
- *   - task_update: Update task status, priority, or assignee
+ *   - task_update: Update task status, priority, assignee, title, or description
  *   - task_note: Append a note to a task (append-only)
+ *   - task_delete: Delete a task (hard delete)
  *   - task_list: List tasks for a project with filters
  *   - dc_add: Add a comment to an ADR (append-only)
  *   - dc_list: List comments for an ADR
@@ -212,6 +213,7 @@ import {
   updateTaskStatus,
   updateTaskStatusSchema,
 } from './tools/update-task-status.js'
+import { deleteTask, deleteTaskSchema } from './tools/delete-task.js'
 
 // Layer 3: Governance
 import {
@@ -443,7 +445,7 @@ server.tool(
 
 server.tool(
   'task_update',
-  'Update the status of an existing task. Optionally change priority or assignee. Automatically records a status-change note for audit trail.',
+  'Update a task: status, priority, assignee, title, or description. All fields except task_id are optional — at least one must be provided. Status changes are automatically recorded in the audit trail.',
   updateTaskStatusSchema,
   withIdentity(updateTaskStatus),
 )
@@ -460,6 +462,13 @@ server.tool(
   'List tasks for a project with optional status filtering. Returns tasks ordered by creation date (newest first).',
   listTasksSchema,
   withIdentity(listTasks),
+)
+
+server.tool(
+  'task_delete',
+  'Delete a task by UUID. Hard delete — irreversible. Use only for cleanup of erroneous or duplicate tasks.',
+  deleteTaskSchema,
+  withIdentity(deleteTask),
 )
 
 server.tool(
