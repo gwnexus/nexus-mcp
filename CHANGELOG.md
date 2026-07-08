@@ -2,6 +2,38 @@
 
 All notable changes to `@gwdn/nexus-mcp` are documented in this file.
 
+## [0.10.1] — 2026-07-08
+
+### Fixed
+
+- **`task_note` — `Database operation failed` bug** — `task_notes.actor` is a `UUID` foreign key referencing `auth.users(id)`. The previous implementation passed `displayName` or `email` as the actor value, which are not UUIDs and violated the FK constraint. Now uses `identity.userId` exclusively.
+
+### Added
+
+- **`task_delete`** — Hard-delete a task by UUID. Project access is verified before deletion. Use for cleanup of erroneous or duplicate tasks.
+
+### Changed
+
+- **`task_update`** — `status` is now optional (was required). New optional fields: `title` (max 500 chars) and `description` (max 100k chars, nullable to clear). At least one field must be provided. Enum guards added for `status` and `priority`.
+- Tool count: 60 → 61
+
+### Backend
+
+- `nexus-hub` commit `b648744` — `/api/mcp/tasks` route updated
+- `nexus-hub` commit `cfafac0` — `/api/mcp/projects/:id/preflight` multi-agent aggregation fix
+- `nexus-hub` commit `37c2164` — new `/api/mcp/projects/:id/preflight` endpoint with PAT auth
+
+---
+
+## [0.10.0] — 2026-07-08
+
+### Release
+
+- Tag `v0.10.0` applied to `main` at commit `4b6429c` (test fixture update for tool count 61)
+- No functional changes relative to `0.9.0` beyond the test fix — `v0.10.1` carries the actual feature delta
+
+---
+
 ## [0.9.0] — 2026-06-26
 
 ### Added

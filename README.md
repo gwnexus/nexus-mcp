@@ -31,7 +31,7 @@ Or add to your agent's MCP configuration (OpenCode, Claude Code, Cursor, etc.):
 
 ## Architecture
 
-The server exposes 38 tools across 4 layers. All data access goes through the Nexus HTTP API -- the MCP server has no direct database access.
+The server exposes 61 tools across 4 layers. All data access goes through the Nexus HTTP API -- the MCP server has no direct database access.
 
 ```
 Agent Runtime (OpenCode, Claude, Cursor, ...)
@@ -58,12 +58,12 @@ Supabase (PostgreSQL + RLS)
 | `kb_related` | Find entities related to a given entity |
 | `project_list` | List accessible projects |
 
-### Layer 2 -- Coordination (22 tools)
+### Layer 2 -- Coordination (23 tools)
 
 | Group | Tools |
 |-------|-------|
 | **Sessions** | `session_create`, `session_close`, `session_list`, `session_append` |
-| **Tasks** | `task_create`, `task_update`, `task_list`, `task_note` |
+| **Tasks** | `task_create`, `task_update`, `task_note`, `task_delete`, `task_list` |
 | **Vault Letters** | `vl_create`, `vl_reply`, `vl_inbox`, `vl_outbox`, `vl_ack` |
 | **Documents** | `doc_ingest`, `doc_list`, `doc_classify`, `doc_update`, `doc_delete` |
 | **Skills** | `sk_list`, `sk_get`, `sk_create`, `sk_update`, `sk_activate`, `sk_assign`, `sk_unassign`, `sk_export` |
