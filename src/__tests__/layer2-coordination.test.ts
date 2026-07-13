@@ -122,9 +122,10 @@ describe('Layer 2: Session tools', () => {
 
       expect(result.isError).toBeUndefined()
       const parsed = parseToolResponse(result)
-      expect(parsed.action).toBe('session_list')
-      expect(parsed.count).toBe(2)
-      expect(parsed.sessions).toHaveLength(2)
+      expect(parsed.schema).toBe('nexus.session-list.v1')
+      expect(parsed.data.action).toBe('session_list')
+      expect(parsed.data.count).toBe(2)
+      expect(parsed.data.sessions).toHaveLength(2)
     })
 
     it('should return error on API failure', async () => {
@@ -151,8 +152,8 @@ describe('Layer 2: Session tools', () => {
 
       expect(result.isError).toBeUndefined()
       const parsed = parseToolResponse(result)
-      expect(parsed.count).toBe(0)
-      expect(parsed.sessions).toHaveLength(0)
+      expect(parsed.data.count).toBe(0)
+      expect(parsed.data.sessions).toHaveLength(0)
     })
   })
 })

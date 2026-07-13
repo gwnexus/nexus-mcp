@@ -74,7 +74,7 @@ export async function getDocument(args: GetDocumentArgs) {
 
   return {
     content: [
-      { type: 'text' as const, text: JSON.stringify(data, null, 2) },
+      { type: 'text' as const, text: JSON.stringify({ schema: 'nexus.kb-get.v1', data }, null, 2) },
     ],
   }
 }

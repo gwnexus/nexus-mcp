@@ -67,7 +67,7 @@ export async function getRelatedEntities(args: GetRelatedEntitiesArgs) {
 
   return {
     content: [
-      { type: 'text' as const, text: JSON.stringify(result.data, null, 2) },
+      { type: 'text' as const, text: JSON.stringify({ schema: 'nexus.kb-related.v1', data: result.data }, null, 2) },
     ],
   }
 }

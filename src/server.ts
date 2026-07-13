@@ -17,6 +17,7 @@
  *   - kb_get: Fetch a single knowledge object
  *   - kb_related: Navigate entity relationships
  *   - project_list: List accessible projects
+ *   - project_update: Update a project readme and/or description
  *
  * Layer 2 - Coordination:
  *   - vl_create: Create a new vault letter
@@ -79,6 +80,7 @@ import { getIdentity, initIdentity } from './auth.js'
 
 // Layer 1: Knowledge Access
 import { projectList, projectListSchema } from './tools/project-list.js'
+import { projectUpdate, projectUpdateSchema } from './tools/project-update.js'
 import { getDocument, getDocumentSchema } from './tools/get-document.js'
 import {
   getProjectMemory,
@@ -263,7 +265,7 @@ function withIdentity(handler: (args: any) => Promise<any>) {
 const server = new McpServer(
   {
     name: 'nexus-mcp',
-    version: '0.8.9',
+    version: '0.10.2',
   },
   {
     capabilities: {
@@ -309,6 +311,13 @@ server.tool(
   'List accessible projects for the authenticated user or agent. Returns project metadata ordered by name.',
   projectListSchema,
   async (args) => projectList(args),
+)
+
+server.tool(
+  'project_update',
+  'Update a project readme and/or description. At least one field must be provided. Partial update — only supplied fields are patched.',
+  projectUpdateSchema,
+  withIdentity(projectUpdate),
 )
 
 // ---------------------------------------------------------------------------

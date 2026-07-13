@@ -59,7 +59,7 @@ export async function getProjectMemory(args: GetProjectMemoryArgs) {
 
   return {
     content: [
-      { type: 'text' as const, text: JSON.stringify(result.data, null, 2) },
+      { type: 'text' as const, text: JSON.stringify({ schema: 'nexus.kb-memory.v1', data: result.data }, null, 2) },
     ],
   }
 }

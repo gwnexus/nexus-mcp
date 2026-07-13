@@ -51,9 +51,10 @@ describe('Layer 1: kb_search', () => {
 
     expect(result.isError).toBeUndefined()
     const parsed = parseToolResponse(result)
-    expect(parsed.total_results).toBe(1)
-    expect(parsed.results[0].entity_type).toBe('task')
-    expect(parsed.results[0].entity_id).toBe(TEST_IDS.taskId)
+    expect(parsed.schema).toBe('nexus.kb-search.v1')
+    expect(parsed.data.total_results).toBe(1)
+    expect(parsed.data.results[0].entity_type).toBe('task')
+    expect(parsed.data.results[0].entity_id).toBe(TEST_IDS.taskId)
   })
 
   it('should return empty results when no matches', async () => {
@@ -68,8 +69,8 @@ describe('Layer 1: kb_search', () => {
     })
 
     const parsed = parseToolResponse(result)
-    expect(parsed.total_results).toBe(0)
-    expect(parsed.results).toEqual([])
+    expect(parsed.data.total_results).toBe(0)
+    expect(parsed.data.results).toEqual([])
   })
 
   it('should pass correct parameters to the API', async () => {
@@ -141,9 +142,10 @@ describe('Layer 1: kb_memory', () => {
 
     expect(result.isError).toBeUndefined()
     const parsed = parseToolResponse(result)
-    expect(parsed.project_id).toBe(TEST_IDS.projectId)
-    expect(parsed.memory.adrs).toHaveLength(1)
-    expect(parsed.memory.active_tasks).toHaveLength(1)
+    expect(parsed.schema).toBe('nexus.kb-memory.v1')
+    expect(parsed.data.project_id).toBe(TEST_IDS.projectId)
+    expect(parsed.data.memory.adrs).toHaveLength(1)
+    expect(parsed.data.memory.active_tasks).toHaveLength(1)
   })
 
   it('should pass depth parameter to the API', async () => {
@@ -205,8 +207,9 @@ describe('Layer 1: kb_get', () => {
 
     expect(result.isError).toBeUndefined()
     const parsed = parseToolResponse(result)
-    expect(parsed.entity_type).toBe('session')
-    expect(parsed.entity_id).toBe(TEST_IDS.sessionId)
+    expect(parsed.schema).toBe('nexus.kb-get.v1')
+    expect(parsed.data.entity_type).toBe('session')
+    expect(parsed.data.entity_id).toBe(TEST_IDS.sessionId)
   })
 
   it('should fetch a document in markdown mode', async () => {
@@ -282,10 +285,11 @@ describe('Layer 1: kb_related', () => {
 
     expect(result.isError).toBeUndefined()
     const parsed = parseToolResponse(result)
-    expect(parsed.source.entity_type).toBe('session')
-    expect(parsed.source.entity_id).toBe(TEST_IDS.sessionId)
-    expect(parsed.total_related).toBe(1)
-    expect(parsed.related[0].entity_type).toBe('task')
+    expect(parsed.schema).toBe('nexus.kb-related.v1')
+    expect(parsed.data.source.entity_type).toBe('session')
+    expect(parsed.data.source.entity_id).toBe(TEST_IDS.sessionId)
+    expect(parsed.data.total_related).toBe(1)
+    expect(parsed.data.related[0].entity_type).toBe('task')
   })
 
   it('should handle API errors', async () => {

@@ -114,6 +114,7 @@ export async function closeSession(args: CloseSessionArgs) {
 // list_open_sessions -> session_list
 // ---------------------------------------------------------------------------
 
+
 export const listOpenSessionsSchema = {
   project_id: z.string().uuid().describe('Project UUID'),
   limit: z
@@ -151,7 +152,7 @@ export async function listOpenSessions(args: ListOpenSessionsArgs) {
 
   return {
     content: [
-      { type: 'text' as const, text: JSON.stringify(result.data, null, 2) },
+      { type: 'text' as const, text: JSON.stringify({ schema: 'nexus.session-list.v1', data: result.data }, null, 2) },
     ],
   }
 }

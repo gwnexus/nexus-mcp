@@ -63,6 +63,6 @@ export async function searchKnowledge(args: SearchArgs) {
   }
 
   return {
-    content: [{ type: 'text' as const, text: JSON.stringify(result.data, null, 2) }],
+    content: [{ type: 'text' as const, text: JSON.stringify({ schema: 'nexus.kb-search.v1', data: result.data }, null, 2) }],
   }
 }

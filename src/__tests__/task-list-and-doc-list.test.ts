@@ -51,9 +51,10 @@ describe('task_list', () => {
 
     expect(result.isError).toBeUndefined()
     const parsed = parseToolResponse(result)
-    expect(parsed.action).toBe('task_list')
-    expect(parsed.count).toBe(2)
-    expect(parsed.tasks).toHaveLength(2)
+    expect(parsed.schema).toBe('nexus.task-list.v1')
+    expect(parsed.data.action).toBe('task_list')
+    expect(parsed.data.count).toBe(2)
+    expect(parsed.data.tasks).toHaveLength(2)
   })
 
   it('should pass status_filter to API', async () => {
@@ -113,8 +114,8 @@ describe('task_list', () => {
 
     expect(result.isError).toBeUndefined()
     const parsed = parseToolResponse(result)
-    expect(parsed.count).toBe(0)
-    expect(parsed.tasks).toHaveLength(0)
+    expect(parsed.data.count).toBe(0)
+    expect(parsed.data.tasks).toHaveLength(0)
   })
 })
 
@@ -158,9 +159,10 @@ describe('doc_list', () => {
 
     expect(result.isError).toBeUndefined()
     const parsed = parseToolResponse(result)
-    expect(parsed.action).toBe('doc_list')
-    expect(parsed.count).toBe(2)
-    expect(parsed.documents).toHaveLength(2)
+    expect(parsed.schema).toBe('nexus.doc-list.v1')
+    expect(parsed.data.action).toBe('doc_list')
+    expect(parsed.data.count).toBe(2)
+    expect(parsed.data.documents).toHaveLength(2)
   })
 
   it('should pass source filter to API', async () => {
@@ -220,7 +222,7 @@ describe('doc_list', () => {
 
     expect(result.isError).toBeUndefined()
     const parsed = parseToolResponse(result)
-    expect(parsed.count).toBe(0)
-    expect(parsed.documents).toHaveLength(0)
+    expect(parsed.data.count).toBe(0)
+    expect(parsed.data.documents).toHaveLength(0)
   })
 })

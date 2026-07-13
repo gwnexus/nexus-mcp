@@ -165,9 +165,10 @@ describe('Nexus Dispatch: dispatch_inbox', () => {
 
     expect(result.isError).toBeUndefined()
     const parsed = parseToolResponse(result)
-    expect(parsed.action).toBe('dispatch_inbox')
-    expect(parsed.count).toBe(2)
-    expect(parsed.dispatches).toHaveLength(2)
+    expect(parsed.schema).toBe('nexus.dispatch-list.v1')
+    expect(parsed.data.action).toBe('dispatch_inbox')
+    expect(parsed.data.count).toBe(2)
+    expect(parsed.data.dispatches).toHaveLength(2)
   })
 
   it('should filter by blocking scope', async () => {
@@ -191,8 +192,8 @@ describe('Nexus Dispatch: dispatch_inbox', () => {
 
     expect(result.isError).toBeUndefined()
     const parsed = parseToolResponse(result)
-    expect(parsed.count).toBe(1)
-    expect(parsed.dispatches[0].blocking).toBe(true)
+    expect(parsed.data.count).toBe(1)
+    expect(parsed.data.dispatches[0].blocking).toBe(true)
   })
 })
 
@@ -221,8 +222,9 @@ describe('Nexus Dispatch: dispatch_outbox', () => {
 
     expect(result.isError).toBeUndefined()
     const parsed = parseToolResponse(result)
-    expect(parsed.action).toBe('dispatch_outbox')
-    expect(parsed.count).toBe(1)
+    expect(parsed.schema).toBe('nexus.dispatch-list.v1')
+    expect(parsed.data.action).toBe('dispatch_outbox')
+    expect(parsed.data.count).toBe(1)
   })
 })
 
@@ -454,10 +456,11 @@ describe('Nexus Dispatch: dispatch_get', () => {
 
     expect(result.isError).toBeUndefined()
     const parsed = parseToolResponse(result)
-    expect(parsed.action).toBe('dispatch_get')
-    expect(parsed.dispatch.id).toBe(TEST_IDS.dispatchId)
-    expect(parsed.messages).toHaveLength(2)
-    expect(parsed.participants).toHaveLength(2)
+    expect(parsed.schema).toBe('nexus.dispatch-get.v1')
+    expect(parsed.data.action).toBe('dispatch_get')
+    expect(parsed.data.dispatch.id).toBe(TEST_IDS.dispatchId)
+    expect(parsed.data.messages).toHaveLength(2)
+    expect(parsed.data.participants).toHaveLength(2)
   })
 
   it('should return error when Dispatch not found', async () => {
@@ -500,10 +503,11 @@ describe('Nexus Dispatch: dispatch_sweep', () => {
 
     expect(result.isError).toBeUndefined()
     const parsed = parseToolResponse(result)
-    expect(parsed.action).toBe('dispatch_sweep')
-    expect(parsed.blocking).toHaveLength(1)
-    expect(parsed.blocking[0].blocking).toBe(true)
-    expect(parsed.recommended_next_actions).toHaveLength(1)
+    expect(parsed.schema).toBe('nexus.dispatch-sweep.v1')
+    expect(parsed.data.action).toBe('dispatch_sweep')
+    expect(parsed.data.blocking).toHaveLength(1)
+    expect(parsed.data.blocking[0].blocking).toBe(true)
+    expect(parsed.data.recommended_next_actions).toHaveLength(1)
   })
 
   it('should return empty sweep for idle project', async () => {
@@ -528,8 +532,8 @@ describe('Nexus Dispatch: dispatch_sweep', () => {
 
     expect(result.isError).toBeUndefined()
     const parsed = parseToolResponse(result)
-    expect(parsed.blocking).toHaveLength(0)
-    expect(parsed.recommended_next_actions).toHaveLength(0)
+    expect(parsed.data.blocking).toHaveLength(0)
+    expect(parsed.data.recommended_next_actions).toHaveLength(0)
   })
 })
 

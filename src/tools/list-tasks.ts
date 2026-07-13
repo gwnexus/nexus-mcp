@@ -51,7 +51,7 @@ export async function listTasks(args: ListTasksArgs) {
 
   return {
     content: [
-      { type: 'text' as const, text: JSON.stringify(result.data, null, 2) },
+      { type: 'text' as const, text: JSON.stringify({ schema: 'nexus.task-list.v1', data: result.data }, null, 2) },
     ],
   }
 }

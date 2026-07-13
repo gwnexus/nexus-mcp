@@ -40,9 +40,10 @@ describe('project_list', () => {
 
     expect(result.isError).toBeUndefined()
     const parsed = parseToolResponse(result)
-    expect(parsed.total).toBe(2)
-    expect(parsed.projects).toHaveLength(2)
-    expect(parsed.projects[0].name).toBe('Project Alpha')
+    expect(parsed.schema).toBe('nexus.project-list.v1')
+    expect(parsed.data.total).toBe(2)
+    expect(parsed.data.projects).toHaveLength(2)
+    expect(parsed.data.projects[0].name).toBe('Project Alpha')
   })
 
   it('should return an empty list when no projects exist', async () => {
@@ -58,8 +59,8 @@ describe('project_list', () => {
 
     expect(result.isError).toBeUndefined()
     const parsed = parseToolResponse(result)
-    expect(parsed.total).toBe(0)
-    expect(parsed.projects).toHaveLength(0)
+    expect(parsed.data.total).toBe(0)
+    expect(parsed.data.projects).toHaveLength(0)
   })
 
   it('should handle API errors gracefully', async () => {

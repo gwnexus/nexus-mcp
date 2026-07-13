@@ -46,7 +46,7 @@ export async function projectList(args: ProjectListArgs) {
 
   return {
     content: [
-      { type: 'text' as const, text: JSON.stringify(result.data, null, 2) },
+      { type: 'text' as const, text: JSON.stringify({ schema: 'nexus.project-list.v1', data: result.data }, null, 2) },
     ],
   }
 }

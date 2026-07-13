@@ -27,6 +27,10 @@ function ok(data: unknown) {
   return { content: [{ type: 'text' as const, text: JSON.stringify(data, null, 2) }] }
 }
 
+function okSchema(schemaId: string, data: unknown) {
+  return { content: [{ type: 'text' as const, text: JSON.stringify({ schema: schemaId, data }, null, 2) }] }
+}
+
 function err(error: unknown) {
   return { content: [{ type: 'text' as const, text: JSON.stringify({ error }, null, 2) }], isError: true }
 }
@@ -104,7 +108,9 @@ export const dispatchInboxSchema = {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function dispatchInbox(args: any) {
-  return dispatch('dispatch_inbox', args)
+  const result = await nexusPost('/api/mcp/dispatches', { action: 'dispatch_inbox', ...args })
+  if (!result.ok) return err(result.error)
+  return okSchema('nexus.dispatch-list.v1', result.data)
 }
 
 // ── dispatch_outbox ───────────────────────────────────────────────────────────
@@ -120,7 +126,9 @@ export const dispatchOutboxSchema = {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function dispatchOutbox(args: any) {
-  return dispatch('dispatch_outbox', args)
+  const result = await nexusPost('/api/mcp/dispatches', { action: 'dispatch_outbox', ...args })
+  if (!result.ok) return err(result.error)
+  return okSchema('nexus.dispatch-list.v1', result.data)
 }
 
 // ── dispatch_ack ──────────────────────────────────────────────────────────────
@@ -210,7 +218,9 @@ export const dispatchGetSchema = {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function dispatchGet(args: any) {
-  return dispatch('dispatch_get', args)
+  const result = await nexusPost('/api/mcp/dispatches', { action: 'dispatch_get', ...args })
+  if (!result.ok) return err(result.error)
+  return okSchema('nexus.dispatch-get.v1', result.data)
 }
 
 // ── dispatch_sweep ────────────────────────────────────────────────────────────
@@ -234,7 +244,9 @@ export const dispatchSweepSchema = {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function dispatchSweep(args: any) {
-  return dispatch('dispatch_sweep', args)
+  const result = await nexusPost('/api/mcp/dispatches', { action: 'dispatch_sweep', ...args })
+  if (!result.ok) return err(result.error)
+  return okSchema('nexus.dispatch-sweep.v1', result.data)
 }
 
 // ── dispatch_related ──────────────────────────────────────────────────────────
