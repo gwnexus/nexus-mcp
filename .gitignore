@@ -1,6 +1,29 @@
-node_modules/
+# Build output
 dist/
 *.tsbuildinfo
+
+# Dependencies
+node_modules/
+
+# Environment / secrets
 .env
-.env.local
+.env.*
+!.env.example
+
+# Devbox local state
+.devbox/
+
+# Taskmaster (local AI task state)
+.taskmaster/
+
+# RTK filter state (local only)
+.rtk/
+
+# Editor
 .idea/
+.vscode/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
