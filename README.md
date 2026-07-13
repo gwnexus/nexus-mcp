@@ -108,6 +108,40 @@ identity and enforces project-scoped RBAC.
 
 ## Development
 
+### Recommended: Devbox
+
+We recommend using [Devbox](https://www.jetify.com/devbox) to get a fully reproducible, isolated development environment with all required tools pre-installed (Node.js 22, git, ripgrep, tmux, lazygit, and more).
+
+**Install Devbox** (once, system-wide):
+
+```bash
+curl -fsSL https://get.jetify.com/devbox | bash
+```
+
+**Enter the dev shell:**
+
+```bash
+devbox shell
+```
+
+This drops you into a Nix-managed shell with every tool pinned to the versions declared in `devbox.json`. No global installs, no version drift.
+
+**Available Devbox scripts:**
+
+| Script | Command | Description |
+|--------|---------|-------------|
+| `dev` | `devbox run dev` | Start MCP server via tsx (watch mode) |
+| `build` | `devbox run build` | Compile TypeScript to `dist/` |
+| `test` | `devbox run test` | Run full test suite |
+| `typecheck` | `devbox run typecheck` | TypeScript type-check only |
+| `validate` | `devbox run validate` | Full pre-commit validation (typecheck + tests) |
+| `check-local` | `devbox run check-local` | Local environment health check |
+| `sec-scan` | `devbox run sec-scan` | Security scan (gitleaks + audit) |
+| `tmux-2w` | `devbox run tmux-2w` | Open 2-window tmux workspace |
+| `tmux-3w` | `devbox run tmux-3w` | Open 3-window tmux workspace |
+
+> **Without Devbox**, you can still run commands directly:
+
 ```bash
 npm install
 npm run typecheck   # TypeScript check

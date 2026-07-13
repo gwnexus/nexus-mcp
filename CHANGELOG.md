@@ -2,6 +2,15 @@
 
 All notable changes to `@gwdn/nexus-mcp` are documented in this file.
 
+## [0.10.3] — 2026-07-13
+
+### Added
+
+- **Devbox integration** — `devbox.json` and `devbox.lock` are now part of the public repository. Devbox provides a fully reproducible, Nix-backed development environment with all required tools pinned (Node.js 22, git, ripgrep, tmux, lazygit, git-cliff, gitleaks, commitizen, pre-commit, and more). See the new **Devbox** section in the README for setup instructions and available scripts.
+- **README: Devbox section** — Documents recommended dev environment setup, all available `devbox run` scripts, and fallback `npm` commands for users not using Devbox.
+
+---
+
 ## [0.10.2] — 2026-07-13
 
 ### Added
