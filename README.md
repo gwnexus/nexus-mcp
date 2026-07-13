@@ -31,7 +31,7 @@ Or add to your agent's MCP configuration (OpenCode, Claude Code, Cursor, etc.):
 
 ## Architecture
 
-The server exposes 61 tools across 4 layers. All data access goes through the Nexus HTTP API -- the MCP server has no direct database access.
+The server exposes 62 tools across 4 layers. All data access goes through the Nexus HTTP API -- the MCP server has no direct database access.
 
 ```
 Agent Runtime (OpenCode, Claude, Cursor, ...)
@@ -58,10 +58,11 @@ Supabase (PostgreSQL + RLS)
 | `kb_related` | Find entities related to a given entity |
 | `project_list` | List accessible projects |
 
-### Layer 2 -- Coordination (23 tools)
+### Layer 2 -- Coordination (24 tools)
 
 | Group | Tools |
 |-------|-------|
+| **Projects** | `project_update` |
 | **Sessions** | `session_create`, `session_close`, `session_list`, `session_append` |
 | **Tasks** | `task_create`, `task_update`, `task_note`, `task_delete`, `task_list` |
 | **Vault Letters** | `vl_create`, `vl_reply`, `vl_inbox`, `vl_outbox`, `vl_ack` |
@@ -110,7 +111,7 @@ identity and enforces project-scoped RBAC.
 ```bash
 npm install
 npm run typecheck   # TypeScript check
-npm test            # Run tests (127 unit + 34 E2E)
+npm test            # Run tests (159 unit + 34 E2E)
 npm run build       # Compile to dist/
 npm run dev         # Run via tsx (development)
 npm start           # Run compiled JS (production)

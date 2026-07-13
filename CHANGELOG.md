@@ -2,6 +2,20 @@
 
 All notable changes to `@gwdn/nexus-mcp` are documented in this file.
 
+## [0.10.2] — 2026-07-13
+
+### Added
+
+- **`project_update`** — New Layer 2 tool to patch a project's `readme` and/or `description` fields. At least one field must be provided; only supplied fields are updated (partial update). Delegates to `POST /api/mcp/projects` with `action: project_update`.
+- **Schema version envelope** — 11 structured tool responses now wrap their payload in `{ schema: "nexus.<tool>.v1", data: { ... } }`. This enables the headroom-intercept plugin to route to versioned compression adapters. Affected tools: `kb_memory`, `kb_search`, `kb_get` (structured mode), `kb_related`, `dispatch_sweep`, `dispatch_inbox`, `dispatch_outbox`, `dispatch_get`, `task_list`, `doc_list`, `session_list`, `project_list`. Error responses and markdown/summary render modes are unchanged.
+
+### Changed
+
+- Tool count: 61 → 62
+- `dispatches.ts` — added internal `okSchema(schemaId, data)` helper alongside existing `ok()` / `err()`
+
+---
+
 ## [0.10.1] — 2026-07-08
 
 ### Fixed
