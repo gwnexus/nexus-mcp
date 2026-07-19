@@ -48,7 +48,7 @@ Nexus API (nexus.gatewarden.eu)
 Supabase (PostgreSQL + RLS)
 ```
 
-### Layer 1 -- Knowledge Access (5 tools)
+### Layer 1 -- Knowledge Access (6 tools)
 
 | Tool | Description |
 |------|-------------|
@@ -57,18 +57,19 @@ Supabase (PostgreSQL + RLS)
 | `kb_get` | Retrieve a specific entity by type and ID |
 | `kb_related` | Find entities related to a given entity |
 | `project_list` | List accessible projects |
+| `project_update` | Patch a project's readme and/or description (partial update) |
 
-### Layer 2 -- Coordination (24 tools)
+### Layer 2 -- Coordination (48 tools)
 
 | Group | Tools |
 |-------|-------|
-| **Projects** | `project_update` |
-| **Sessions** | `session_create`, `session_close`, `session_list`, `session_append` |
-| **Tasks** | `task_create`, `task_update`, `task_note`, `task_delete`, `task_list` |
 | **Vault Letters** | `vl_create`, `vl_reply`, `vl_inbox`, `vl_outbox`, `vl_ack` |
+| **Dispatches** | `dispatch_create`, `dispatch_reply`, `dispatch_inbox`, `dispatch_outbox`, `dispatch_ack`, `dispatch_assign`, `dispatch_forward`, `dispatch_resolve`, `dispatch_close`, `dispatch_sweep`, `dispatch_get`, `dispatch_related` |
+| **Tasks** | `task_create`, `task_update`, `task_note`, `task_list`, `task_delete` |
 | **Documents** | `doc_ingest`, `doc_list`, `doc_classify`, `doc_update`, `doc_delete` |
-| **Skills** | `sk_list`, `sk_get`, `sk_create`, `sk_update`, `sk_activate`, `sk_assign`, `sk_unassign`, `sk_export` |
+| **Sessions** | `session_create`, `session_append`, `session_close`, `session_list` |
 | **Decision Comments** | `dc_add`, `dc_list` |
+| **Skills** | `sk_list`, `sk_get`, `sk_create`, `sk_update`, `sk_activate`, `sk_assign`, `sk_unassign`, `sk_export` |
 | **Directives** | `pd_list`, `pd_get`, `pd_create`, `pd_update`, `pd_delete`, `pd_toggle`, `directive_export` |
 
 ### Layer 3 -- Governance (3 tools)
@@ -160,7 +161,7 @@ nexus-mcp/
 │   ├── auth.ts            # Token-based identity resolution via Nexus API
 │   ├── nexus-api.ts       # HTTP client for Nexus API (nexusGet, nexusPost)
 │   ├── machine-id.ts      # Machine identification for session metadata
-│   ├── tools/             # 24 tool modules (38 tools total)
+│   ├── tools/             # 27 tool modules (62 tools total)
 │   └── __tests__/         # 12 test files (127 unit + 34 E2E)
 ├── LICENSE                # Apache-2.0
 ├── SECURITY.md            # Security policy
