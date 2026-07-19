@@ -22,6 +22,13 @@ export const ingestDocumentSchema = {
     ),
   source_url: z.string().url().optional().describe('Source URL if applicable'),
   agent_id: z.string().max(200).optional().describe('Agent identifier if applicable'),
+  parent_id: z
+    .string()
+    .uuid()
+    .optional()
+    .describe(
+      'UUID of the parent ingest item. Used to create mitigation reports as children of scan reports. Max 1 level of nesting.',
+    ),
 }
 
 type IngestDocumentArgs = {
@@ -32,6 +39,7 @@ type IngestDocumentArgs = {
   source_url?: string
   user_id: string
   agent_id?: string
+  parent_id?: string
 }
 
 export async function ingestDocument(args: IngestDocumentArgs) {
@@ -43,6 +51,7 @@ export async function ingestDocument(args: IngestDocumentArgs) {
     source: args.source,
     source_url: args.source_url,
     agent_id: args.agent_id,
+    parent_id: args.parent_id,
   })
 
   if (!result.ok) {

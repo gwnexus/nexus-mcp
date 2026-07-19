@@ -2,6 +2,19 @@
 
 All notable changes to `@gwdn/nexus-mcp` are documented in this file.
 
+## [0.10.4] — 2026-07-19
+
+### Added
+
+- **`doc_ingest`: `parent_id` parameter** — Optional UUID parameter to create child ingest items linked to a parent. Used to attach mitigation reports to scan reports (max 1 level of nesting). Depth validation and same-project constraints are enforced by the hub API and DB triggers; the MCP layer passes the value through without additional validation.
+- **`doc_classify`: `mitigation_report` classification** — New classification value accepted by the hub API (migration 0142 / ADR-0065). Allows classifying child documents created via `parent_id` as mitigation reports.
+
+### Changed
+
+- `layer2-coordination.test.ts` — 4 new tests: `doc_ingest` with `parent_id`, `doc_classify` for `research_note`, `mitigation_report`, and API error path. Test count: 159 → 163.
+
+---
+
 ## [0.10.3] — 2026-07-13
 
 ### Added

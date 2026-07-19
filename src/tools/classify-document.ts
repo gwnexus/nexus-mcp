@@ -18,6 +18,7 @@ export const classifyDocumentSchema = {
       'decision_input',
       'reference',
       'archive',
+      'mitigation_report',
     ])
     .describe('New classification for the document'),
 }

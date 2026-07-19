@@ -716,6 +716,106 @@ describe('Layer 2: doc_ingest', () => {
 
     expect(result.isError).toBe(true)
   })
+
+  it('should ingest a child document with parent_id', async () => {
+    const parentId = 'aaaaaaaa-bbbb-1ccc-8ddd-eeeeeeeeeeee'
+    vi.mocked(nexusPost).mockResolvedValue(
+      mockApiSuccess({
+        action: 'doc_ingest',
+        document_id: TEST_IDS.documentId,
+        project_id: TEST_IDS.projectId,
+        title: 'Mitigation: Security Scan - 2026-07-19',
+        classification: 'unclassified',
+        source: 'mitigation',
+        parent_id: parentId,
+        body_length: 42,
+      }),
+    )
+
+    const { ingestDocument } = await import('../tools/ingest-document.js')
+    const result = await ingestDocument({
+      project_id: TEST_IDS.projectId,
+      title: 'Mitigation: Security Scan - 2026-07-19',
+      body: '## Actions Taken\n\nPatched dependency X.',
+      source: 'mitigation',
+      parent_id: parentId,
+      user_id: TEST_IDS.userId,
+    })
+
+    expect(result.isError).toBeUndefined()
+    const parsed = parseToolResponse(result)
+    expect(parsed.action).toBe('doc_ingest')
+    expect(parsed.parent_id).toBe(parentId)
+
+    const call = vi.mocked(nexusPost).mock.lastCall
+    expect(call![1]).toMatchObject({ parent_id: parentId })
+  })
+})
+
+// ---------------------------------------------------------------------------
+// doc_classify
+// ---------------------------------------------------------------------------
+
+describe('Layer 2: doc_classify', () => {
+  beforeEach(() => {
+    vi.restoreAllMocks()
+  })
+
+  it('should classify a document', async () => {
+    vi.mocked(nexusPost).mockResolvedValue(
+      mockApiSuccess({
+        action: 'doc_classify',
+        document_id: TEST_IDS.documentId,
+        classification: 'research_note',
+      }),
+    )
+
+    const { classifyDocument } = await import('../tools/classify-document.js')
+    const result = await classifyDocument({
+      document_id: TEST_IDS.documentId,
+      classification: 'research_note',
+      user_id: TEST_IDS.userId,
+    })
+
+    expect(result.isError).toBeUndefined()
+    const parsed = parseToolResponse(result)
+    expect(parsed.action).toBe('doc_classify')
+    expect(parsed.classification).toBe('research_note')
+  })
+
+  it('should classify a document as mitigation_report', async () => {
+    vi.mocked(nexusPost).mockResolvedValue(
+      mockApiSuccess({
+        action: 'doc_classify',
+        document_id: TEST_IDS.documentId,
+        classification: 'mitigation_report',
+      }),
+    )
+
+    const { classifyDocument } = await import('../tools/classify-document.js')
+    const result = await classifyDocument({
+      document_id: TEST_IDS.documentId,
+      classification: 'mitigation_report',
+      user_id: TEST_IDS.userId,
+    })
+
+    expect(result.isError).toBeUndefined()
+    const parsed = parseToolResponse(result)
+    expect(parsed.classification).toBe('mitigation_report')
+  })
+
+  it('should return error on API failure', async () => {
+    vi.mocked(nexusPost).mockResolvedValue(mockApiError('Document not found'))
+
+    const { classifyDocument } = await import('../tools/classify-document.js')
+    const result = await classifyDocument({
+      document_id: TEST_IDS.documentId,
+      classification: 'archive',
+      user_id: TEST_IDS.userId,
+    })
+
+    expect(result.isError).toBe(true)
+  })
 })
 
 // ---------------------------------------------------------------------------
