@@ -27,6 +27,7 @@ export const appendSessionEntrySchema = {
       'correction',
       'security_scan',
       'performance_scan',
+      'config_change',
     ])
     .describe('Type of session entry'),
   summary: z.string().max(100_000).describe('Entry content / summary text'),

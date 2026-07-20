@@ -283,6 +283,28 @@ describe('Layer 2: session_append', () => {
     const call = vi.mocked(nexusPost).mock.calls[0][1] as Record<string, unknown>
     expect(call).not.toHaveProperty('metadata')
   })
+
+  it('should accept config_change as entry_type', async () => {
+    vi.mocked(nexusPost).mockResolvedValue(
+      mockApiSuccess({
+        action: 'session_append',
+        entry_id: TEST_IDS.sessionId,
+        entry_type: 'config_change',
+      }),
+    )
+
+    const { appendSessionEntry } = await import('../tools/append-session-entry.js')
+    const result = await appendSessionEntry({
+      session_id: TEST_IDS.sessionId,
+      entry_type: 'config_change',
+      summary: 'Skill nx-init assigned to project',
+      user_id: TEST_IDS.userId,
+    })
+
+    expect(result.isError).toBeUndefined()
+    const parsed = parseToolResponse(result)
+    expect(parsed.entry_type).toBe('config_change')
+  })
 })
 
 // ---------------------------------------------------------------------------

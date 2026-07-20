@@ -2,6 +2,15 @@
 
 All notable changes to `@gwdn/nexus-mcp` are documented in this file.
 
+## [0.10.5] — 2026-07-20
+
+### Added
+
+- **`session_append`: `config_change` entry type** — New `entry_type` value added to the `session_append` tool schema (Migration 0143). Used for audit trail entries when project configuration is modified (skills assigned/unassigned, directives created/updated/deleted, etc.). Entries of this type are typically created automatically server-side via `auditConfigChange()`; the MCP tool accepts it for completeness and manual agent use.
+- 1 new unit test for `config_change` entry type. Test count: 163 → 164.
+
+---
+
 ## [0.10.4] — 2026-07-19
 
 ### Added
