@@ -2,6 +2,16 @@
 
 All notable changes to `@gwdn/nexus-mcp` are documented in this file.
 
+## [0.10.6] — 2026-07-29
+
+### Security
+
+- **Dependency audit fix** — Resolved 10 of 11 known vulnerabilities (4 high, 5 moderate, 1 low) via `npm audit fix`. Remaining 1 low-severity issue (`esbuild` Windows-only path traversal in dev server) is not applicable to this project.
+  - Updated transitive deps: `hono`, `fast-uri`, `postcss`, `vite`, `@hono/node-server`, `body-parser`, `express-rate-limit`, `ip-address`, `qs`
+- **CI: added `npm audit` step** — The CI pipeline now runs `npm audit --audit-level=high` before build, failing on high/critical vulnerabilities to prevent regressions.
+
+---
+
 ## [0.10.5] — 2026-07-20
 
 ### Added
