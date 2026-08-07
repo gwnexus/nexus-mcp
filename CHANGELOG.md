@@ -2,6 +2,14 @@
 
 All notable changes to `@gwdn/nexus-mcp` are documented in this file.
 
+## [0.10.7] — 2026-08-07
+
+### Added
+
+- **`doc_classify`: `review_paper` and `pr_draft` classifications** — Two new classification values added to the `doc_classify` tool schema, aligning with hub DB constraint (migration 0156) and frontend support. `review_paper` is used for paper/document reviews; `pr_draft` is used for PR draft outputs persisted as ingest items.
+
+---
+
 ## [0.10.6] — 2026-07-29
 
 ### Security
