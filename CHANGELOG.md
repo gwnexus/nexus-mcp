@@ -2,6 +2,17 @@
 
 All notable changes to `@gwdn/nexus-mcp` are documented in this file.
 
+## [0.10.8] — 2026-08-07
+
+### Security
+
+- **Dependency audit fix** — Resolved 2 vulnerabilities via `npm audit fix`:
+  - `fast-uri` (high): host confusion via backslash authority introducer — updated to patched version
+  - `hono` (moderate): ReDoS in CORS middleware via Access-Control-Request-Headers — updated to patched version
+- Remaining 1 low-severity issue (`esbuild` Windows-only dev server path traversal) is not applicable to this project and does not trigger the CI `--audit-level=high` gate.
+
+---
+
 ## [0.10.7] — 2026-08-07
 
 ### Added
