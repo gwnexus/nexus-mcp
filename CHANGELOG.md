@@ -12,6 +12,10 @@ All notable changes to `@gwdn/nexus-mcp` are documented in this file.
 
 - **`doc_classify`: updated tool description** - The tool description now lists all valid classification values including `mitigation_report`, `review_paper`, and `pr_draft` (previously only listed the original set).
 
+### Security
+
+- **Dependency audit fix** - Resolved `nanoid` high-severity vulnerability (custom generators loop indefinitely when size is zero, GHSA-2v37-7h3g-55p8) via `npm audit fix`. Remaining 1 low-severity issue (`esbuild` Windows-only dev server path traversal) is not applicable to this project.
+
 ### Changed
 
 - **Devbox init script** - Updated team metadata (`NEXUS-Labs`) and version scheme (`3.0.0`) in `scripts/devbox/dbx_init.sh`.
