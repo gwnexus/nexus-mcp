@@ -2,7 +2,7 @@
 
 All notable changes to `@gwdn/nexus-mcp` are documented in this file.
 
-## [0.10.9] - 2026-08-20
+## [0.10.10] - 2026-08-20
 
 ### Added
 
@@ -19,6 +19,10 @@ All notable changes to `@gwdn/nexus-mcp` are documented in this file.
 ### Changed
 
 - **Devbox init script** - Updated team metadata (`NEXUS-Labs`) and version scheme (`3.0.0`) in `scripts/devbox/dbx_init.sh`.
+
+### Note
+
+- `0.10.9` was published to npm with an incomplete audit fix (nanoid vulnerability still present). `0.10.10` supersedes it as the correct release. Use `@gwdn/nexus-mcp@0.10.10` or `@latest`.
 
 ---
 
