@@ -146,7 +146,7 @@ This drops you into a Nix-managed shell with every tool pinned to the versions d
 ```bash
 npm install
 npm run typecheck   # TypeScript check
-npm test            # Run tests (159 unit + 34 E2E)
+npm test            # Run tests (164 unit + 34 E2E)
 npm run build       # Compile to dist/
 npm run dev         # Run via tsx (development)
 npm start           # Run compiled JS (production)
@@ -162,7 +162,7 @@ nexus-mcp/
 │   ├── nexus-api.ts       # HTTP client for Nexus API (nexusGet, nexusPost)
 │   ├── machine-id.ts      # Machine identification for session metadata
 │   ├── tools/             # 27 tool modules (62 tools total)
-│   └── __tests__/         # 12 test files (127 unit + 34 E2E)
+│   └── __tests__/         # 14 test files (164 unit + 34 E2E)
 ├── LICENSE                # Apache-2.0
 ├── SECURITY.md            # Security policy
 ├── CONTRIBUTING.md        # Contribution guidelines

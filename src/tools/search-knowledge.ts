@@ -21,6 +21,7 @@ export const searchKnowledgeSchema = {
         'research_note',
         'planning_item',
         'ingest_item',
+        'file',
       ]),
     )
     .optional()

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # -------------------------------------------------------------------
 # scripts/devbox/dbx_init.sh — DevBox initialization
-# @version 3
+# @version 3.0.0
 # @purpose Detect environment, validate tooling, load OS overrides,
 #          display status matrix.
 # -------------------------------------------------------------------
@@ -13,9 +13,9 @@ source "$(dirname "${BASH_SOURCE[0]}")/lib/common.sh"
 # -------------------------------------------------------------------
 # Metadata (injected by workspace template or devbox.json env vars)
 # -------------------------------------------------------------------
-: "${C_DBX_META_TEAM:=nexus-local-dev}"
-: "${C_DBX_META_TEAM_ID:=20c72e35-d4d8-4e40-a7be-efff14d8eaff}"
-: "${C_DBX_META_VERSION:=3}"
+: "${C_DBX_META_TEAM:=NEXUS-Labs}"
+: "${C_DBX_META_TEAM_ID:=NEXUS-Labs-DD}"
+: "${C_DBX_META_VERSION:=3.0.0}"
 : "${C_DBX_SKIP_API_CHECKS:=true}"
 
 # -------------------------------------------------------------------

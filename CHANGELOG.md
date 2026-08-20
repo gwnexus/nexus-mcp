@@ -2,6 +2,22 @@
 
 All notable changes to `@gwdn/nexus-mcp` are documented in this file.
 
+## [0.10.9] - 2026-08-20
+
+### Added
+
+- **`kb_search`: `file` entity type** - Added `file` as a valid `entity_type` filter in the `kb_search` tool schema. Enables agents to search uploaded documents (PDFs, images) that have been processed by AWS Textract and embedded via `text-embedding-3-small`. The nexus-app API already supports this entity type (maps to `project_documents` table); this change aligns the MCP tool definition.
+
+### Fixed
+
+- **`doc_classify`: updated tool description** - The tool description now lists all valid classification values including `mitigation_report`, `review_paper`, and `pr_draft` (previously only listed the original set).
+
+### Changed
+
+- **Devbox init script** - Updated team metadata (`NEXUS-Labs`) and version scheme (`3.0.0`) in `scripts/devbox/dbx_init.sh`.
+
+---
+
 ## [0.10.8] — 2026-08-07
 
 ### Security
