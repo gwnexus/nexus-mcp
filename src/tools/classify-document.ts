@@ -21,6 +21,9 @@ export const classifyDocumentSchema = {
       'mitigation_report',
       'review_paper',
       'pr_draft',
+      'offer',
+      'sow',
+      'contract',
     ])
     .describe('New classification for the document'),
 }

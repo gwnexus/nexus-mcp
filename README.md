@@ -53,7 +53,7 @@ Supabase (PostgreSQL + RLS)
 | Tool | Description |
 |------|-------------|
 | `kb_search` | Full-text, semantic, or hybrid search across project entities |
-| `kb_memory` | Structured project memory snapshot (ADRs, tasks, sessions, letters) |
+| `kb_memory` | Structured project memory snapshot (ADRs, tasks, sessions, letters, customer docs) |
 | `kb_get` | Retrieve a specific entity by type and ID |
 | `kb_related` | Find entities related to a given entity |
 | `project_list` | List accessible projects |

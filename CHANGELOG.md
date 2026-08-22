@@ -2,6 +2,15 @@
 
 All notable changes to `@gwdn/nexus-mcp` are documented in this file.
 
+## [0.10.11] - 2026-08-22
+
+### Added
+
+- **`doc_classify`: `offer`, `sow`, `contract` classifications** - Three new classification values added to the `doc_classify` tool schema for customer-facing documents. `offer` is for proposals/offers, `sow` for statements of work, `contract` for general contract documents (NDAs, framework agreements). Aligns with nexus-app wizard upload pipeline changes (Dispatch #899ab533).
+- **`kb_memory`: `customer_docs` include category** - New include category for the `kb_memory` tool that returns offer, SOW, and contract classified ingest items. Enables agents to load customer-facing document context at session start via `include: ['customer_docs']`.
+
+---
+
 ## [0.10.10] - 2026-08-20
 
 ### Added

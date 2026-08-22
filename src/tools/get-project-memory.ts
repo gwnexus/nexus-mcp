@@ -23,6 +23,7 @@ export const getProjectMemorySchema = {
         'open_letters',
         'planning',
         'research',
+        'customer_docs',
       ]),
     )
     .describe('Categories of knowledge to include'),

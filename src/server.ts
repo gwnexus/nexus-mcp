@@ -496,7 +496,7 @@ server.tool(
 
 server.tool(
   'doc_classify',
-  'Update the classification of an ingest item. Valid classifications: unclassified, research_note, planning_item, decision_input, reference, archive, mitigation_report, review_paper, pr_draft.',
+  'Update the classification of an ingest item. Valid classifications: unclassified, research_note, planning_item, decision_input, reference, archive, mitigation_report, review_paper, pr_draft, offer, sow, contract.',
   classifyDocumentSchema,
   withIdentity(classifyDocument),
 )
