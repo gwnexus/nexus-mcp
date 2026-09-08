@@ -10,7 +10,7 @@ import { nexusPost } from '../nexus-api.js'
 
 export const searchKnowledgeSchema = {
   query: z.string().max(1000).describe('Free-text search query'),
-  project_id: z.string().uuid().describe('Project UUID to scope the search'),
+  project_id: z.string().uuid().optional().describe('Project UUID to scope the search (falls back to NEXUS_PROJECT_ID env var when omitted)'),
   entity_types: z
     .array(
       z.enum([

@@ -77,6 +77,7 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 
 import { getIdentity, initIdentity } from './auth.js'
+import { withProjectFallback } from './project-scope.js'
 
 // Layer 1: Knowledge Access
 import { projectList, projectListSchema } from './tools/project-list.js'
@@ -282,14 +283,14 @@ server.tool(
   'kb_search',
   'Search project knowledge using keyword, semantic, or hybrid mode. Applies project scope filters before retrieval. Returns matching entities with relevance ranking.',
   searchKnowledgeSchema,
-  async (args) => searchKnowledge(args),
+  withProjectFallback(searchKnowledge),
 )
 
 server.tool(
   'kb_memory',
   'Get curated project context for agent bootstrapping. Returns ADRs, active tasks, recent sessions, open letters, and other project knowledge based on selected categories and depth.',
   getProjectMemorySchema,
-  async (args) => getProjectMemory(args),
+  withProjectFallback(getProjectMemory),
 )
 
 server.tool(
@@ -317,7 +318,7 @@ server.tool(
   'project_update',
   'Update a project readme and/or description. At least one field must be provided. Partial update — only supplied fields are patched.',
   projectUpdateSchema,
-  withIdentity(projectUpdate),
+  withIdentity(withProjectFallback(projectUpdate)),
 )
 
 // ---------------------------------------------------------------------------
@@ -328,7 +329,7 @@ server.tool(
   'vl_create',
   'Create a new Nexus Dispatch for agent-to-agent or agent-to-human coordination (legacy alias for dispatch_create). Returns the new dispatch ID and status.',
   createLetterSchema,
-  withIdentity(createLetter),
+  withIdentity(withProjectFallback(createLetter)),
 )
 
 server.tool(
@@ -342,14 +343,14 @@ server.tool(
   'vl_inbox',
   'List Dispatches addressed to the calling agent or project (legacy alias for dispatch_inbox). Ordered by blocking status and recency.',
   listInboxSchema,
-  withIdentity(listInbox),
+  withIdentity(withProjectFallback(listInbox)),
 )
 
 server.tool(
   'vl_outbox',
   'List Dispatches sent by the calling agent or project (legacy alias for dispatch_outbox). Ordered by recency.',
   listOutboxSchema,
-  withIdentity(listOutbox),
+  withIdentity(withProjectFallback(listOutbox)),
 )
 
 server.tool(
@@ -365,7 +366,7 @@ server.tool(
   'dispatch_create',
   'Create a new routed Nexus Dispatch for agent-to-agent, agent-to-human, or cross-project coordination. Routing is derived from project context and actor resolution.',
   dispatchCreateSchema,
-  withIdentity(dispatchCreate),
+  withIdentity(withProjectFallback(dispatchCreate)),
 )
 
 server.tool(
@@ -379,14 +380,14 @@ server.tool(
   'dispatch_inbox',
   'List Dispatches addressed to the calling agent or project. Supports scope filters (blocking, waiting_on_me, cross_project) and status filters.',
   dispatchInboxSchema,
-  withIdentity(dispatchInbox),
+  withIdentity(withProjectFallback(dispatchInbox)),
 )
 
 server.tool(
   'dispatch_outbox',
   'List Dispatches created by the calling agent or project. Ordered by recency.',
   dispatchOutboxSchema,
-  withIdentity(dispatchOutbox),
+  withIdentity(withProjectFallback(dispatchOutbox)),
 )
 
 server.tool(
@@ -428,7 +429,7 @@ server.tool(
   'dispatch_sweep',
   'Return a prioritized session-start overview of relevant Dispatches: blocking, overdue, waiting-on-me, new assignments, and recent updates. Use at the start of every agent session.',
   dispatchSweepSchema,
-  withIdentity(dispatchSweep),
+  withIdentity(withProjectFallback(dispatchSweep)),
 )
 
 server.tool(
@@ -442,14 +443,14 @@ server.tool(
   'dispatch_related',
   'Find structurally related Dispatches (same project pair, same type). Useful for loop prevention and duplicate detection before creating new Dispatches.',
   dispatchRelatedSchema,
-  withIdentity(dispatchRelated),
+  withIdentity(withProjectFallback(dispatchRelated)),
 )
 
 server.tool(
   'task_create',
   'Create a new task within a project scope. Returns the new task ID.',
   createTaskSchema,
-  withIdentity(createTask),
+  withIdentity(withProjectFallback(createTask)),
 )
 
 server.tool(
@@ -470,7 +471,7 @@ server.tool(
   'task_list',
   'List tasks for a project with optional status filtering. Returns tasks ordered by creation date (newest first).',
   listTasksSchema,
-  withIdentity(listTasks),
+  withIdentity(withProjectFallback(listTasks)),
 )
 
 server.tool(
@@ -484,14 +485,14 @@ server.tool(
   'doc_ingest',
   'Push text or markdown content into a project knowledge base. Creates an ingest item that can later be classified. Useful for agents to persist research results, generated documents, or extracted knowledge.',
   ingestDocumentSchema,
-  withIdentity(ingestDocument),
+  withIdentity(withProjectFallback(ingestDocument)),
 )
 
 server.tool(
   'doc_list',
   'List ingested documents for a project with optional source filtering. Returns documents ordered by creation date (newest first).',
   listDocumentsSchema,
-  withIdentity(listDocuments),
+  withIdentity(withProjectFallback(listDocuments)),
 )
 
 server.tool(
@@ -526,7 +527,7 @@ server.tool(
   'session_create',
   'Create a new work session for a project. Returns the session ID. The session starts in open status and must be closed explicitly via session_close.',
   createSessionSchema,
-  withIdentity(createSession),
+  withIdentity(withProjectFallback(createSession)),
 )
 
 server.tool(
@@ -540,7 +541,7 @@ server.tool(
   'session_list',
   'List open sessions for a project. Returns sessions ordered by creation date (newest first). Useful for checking active work before starting a new session.',
   listOpenSessionsSchema,
-  async (args) => listOpenSessions(args),
+  withProjectFallback(listOpenSessions),
 )
 
 // ---------------------------------------------------------------------------
@@ -604,21 +605,21 @@ server.tool(
   'sk_assign',
   'Assign a skill to a project. Optionally pin to a specific version and set enabled state.',
   skAssignSchema,
-  withIdentity(skAssign),
+  withIdentity(withProjectFallback(skAssign)),
 )
 
 server.tool(
   'sk_unassign',
   'Remove a skill assignment from a project.',
   skUnassignSchema,
-  withIdentity(skUnassign),
+  withIdentity(withProjectFallback(skUnassign)),
 )
 
 server.tool(
   'sk_export',
   'Export all skill assignments for a project. Returns the full assignment list with pinned versions and enabled states.',
   skExportSchema,
-  withIdentity(skExport),
+  withIdentity(withProjectFallback(skExport)),
 )
 
 // ---------------------------------------------------------------------------
@@ -629,7 +630,7 @@ server.tool(
   'pd_list',
   'List project directives with optional enabled filter. Returns directives ordered by priority and creation date.',
   pdListSchema,
-  withIdentity(pdList),
+  withIdentity(withProjectFallback(pdList)),
 )
 
 server.tool(
@@ -643,7 +644,7 @@ server.tool(
   'pd_create',
   'Create a new project directive. Directives are project-scoped rules/policies that guide agent behavior.',
   pdCreateSchema,
-  withIdentity(pdCreate),
+  withIdentity(withProjectFallback(pdCreate)),
 )
 
 server.tool(
@@ -671,7 +672,7 @@ server.tool(
   'directive_export',
   'Export all enabled directives for a project in CLI-compatible format.',
   directiveExportSchema,
-  withIdentity(directiveExport),
+  withIdentity(withProjectFallback(directiveExport)),
 )
 
 // ---------------------------------------------------------------------------
@@ -682,7 +683,7 @@ server.tool(
   'adr_create',
   'Create a new ADR (Architecture Decision Record) in draft state. Auto-assigns the next ADR number for the project. Optionally links to a superseded ADR.',
   createAdrDraftSchema,
-  withIdentity(createAdrDraft),
+  withIdentity(withProjectFallback(createAdrDraft)),
 )
 
 server.tool(

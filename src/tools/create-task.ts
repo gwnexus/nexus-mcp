@@ -9,7 +9,7 @@ import { z } from 'zod'
 import { nexusPost } from '../nexus-api.js'
 
 export const createTaskSchema = {
-  project_id: z.string().uuid().describe('Project UUID'),
+  project_id: z.string().uuid().optional().describe('Project UUID (falls back to NEXUS_PROJECT_ID env var when omitted)'),
   title: z.string().max(500).describe('Task title'),
   description: z.string().max(100_000).optional().describe('Task description'),
   priority: z

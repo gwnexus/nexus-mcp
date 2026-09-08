@@ -44,8 +44,8 @@ async function dispatch(action: string, args: Record<string, unknown>) {
 // ── dispatch_create ───────────────────────────────────────────────────────────
 
 export const dispatchCreateSchema = {
-  project_id: z.string().uuid()
-    .describe('Sender project UUID — the project the calling agent belongs to'),
+  project_id: z.string().uuid().optional()
+    .describe('Sender project UUID — the project the calling agent belongs to (falls back to NEXUS_PROJECT_ID env var when omitted)'),
   to_project_id: z.string().uuid().optional()
     .describe('Target/recipient project UUID (optional — can be resolved from to_actor)'),
   to_actor: z.string().max(200).optional()
@@ -94,8 +94,8 @@ export async function dispatchReply(args: any) {
 // ── dispatch_inbox ────────────────────────────────────────────────────────────
 
 export const dispatchInboxSchema = {
-  project_id: z.string().uuid()
-    .describe('Project UUID — returns Dispatches addressed to this project'),
+  project_id: z.string().uuid().optional()
+    .describe('Project UUID — returns Dispatches addressed to this project (falls back to NEXUS_PROJECT_ID env var when omitted)'),
   scope: z.enum(['project', 'blocking', 'waiting_on_me', 'cross_project', 'watching']).optional()
     .describe('Filter scope (default: project)'),
   status_filter: z.array(z.string()).optional()
@@ -116,8 +116,8 @@ export async function dispatchInbox(args: any) {
 // ── dispatch_outbox ───────────────────────────────────────────────────────────
 
 export const dispatchOutboxSchema = {
-  project_id: z.string().uuid()
-    .describe('Project UUID — returns Dispatches created by this project'),
+  project_id: z.string().uuid().optional()
+    .describe('Project UUID — returns Dispatches created by this project (falls back to NEXUS_PROJECT_ID env var when omitted)'),
   status_filter: z.array(z.string()).optional()
     .describe('Filter by status (default: all non-closed)'),
   limit: z.number().int().min(1).max(50).optional()
@@ -226,8 +226,8 @@ export async function dispatchGet(args: any) {
 // ── dispatch_sweep ────────────────────────────────────────────────────────────
 
 export const dispatchSweepSchema = {
-  project_id: z.string().uuid()
-    .describe('Project UUID — returns prioritized session-start overview of relevant Dispatches'),
+  project_id: z.string().uuid().optional()
+    .describe('Project UUID — returns prioritized session-start overview of relevant Dispatches (falls back to NEXUS_PROJECT_ID env var when omitted)'),
   include_blocking: z.boolean().optional()
     .describe('Include blocking Dispatches (default: true)'),
   include_overdue: z.boolean().optional()

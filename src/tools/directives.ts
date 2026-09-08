@@ -43,7 +43,8 @@ export const pdListSchema = {
   project_id: z
     .string()
     .uuid()
-    .describe('Project UUID'),
+    .optional()
+    .describe('Project UUID (falls back to NEXUS_PROJECT_ID env var when omitted)'),
   enabled: z
     .boolean()
     .optional()
@@ -109,7 +110,8 @@ export const pdCreateSchema = {
   project_id: z
     .string()
     .uuid()
-    .describe('Project UUID'),
+    .optional()
+    .describe('Project UUID (falls back to NEXUS_PROJECT_ID env var when omitted)'),
   title: z
     .string()
     .max(500)
@@ -284,7 +286,8 @@ export const directiveExportSchema = {
   project_id: z
     .string()
     .uuid()
-    .describe('Project UUID'),
+    .optional()
+    .describe('Project UUID (falls back to NEXUS_PROJECT_ID env var when omitted)'),
 }
 
 type DirectiveExportArgs = {

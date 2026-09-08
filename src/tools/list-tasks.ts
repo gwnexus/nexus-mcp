@@ -9,7 +9,7 @@ import { z } from 'zod'
 import { nexusPost } from '../nexus-api.js'
 
 export const listTasksSchema = {
-  project_id: z.string().uuid().describe('Project UUID'),
+  project_id: z.string().uuid().optional().describe('Project UUID (falls back to NEXUS_PROJECT_ID env var when omitted)'),
   status_filter: z
     .array(z.enum(['open', 'in_progress', 'blocked', 'done', 'cancelled']))
     .optional()

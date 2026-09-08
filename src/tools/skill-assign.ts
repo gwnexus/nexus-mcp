@@ -13,7 +13,7 @@ import { nexusPost } from '../nexus-api.js'
 // ---------------------------------------------------------------------------
 
 export const skAssignSchema = {
-  project_id: z.string().uuid().describe('Project UUID'),
+  project_id: z.string().uuid().optional().describe('Project UUID (falls back to NEXUS_PROJECT_ID env var when omitted)'),
   skill_id: z.string().max(200).describe('Skill identifier or UUID'),
   pinned_version: z
     .number()
@@ -67,7 +67,7 @@ export async function skAssign(args: SkAssignArgs) {
 // ---------------------------------------------------------------------------
 
 export const skUnassignSchema = {
-  project_id: z.string().uuid().describe('Project UUID'),
+  project_id: z.string().uuid().optional().describe('Project UUID (falls back to NEXUS_PROJECT_ID env var when omitted)'),
   skill_id: z.string().max(200).describe('Skill identifier or UUID'),
 }
 
@@ -108,7 +108,7 @@ export async function skUnassign(args: SkUnassignArgs) {
 // ---------------------------------------------------------------------------
 
 export const skExportSchema = {
-  project_id: z.string().uuid().describe('Project UUID'),
+  project_id: z.string().uuid().optional().describe('Project UUID (falls back to NEXUS_PROJECT_ID env var when omitted)'),
 }
 
 type SkExportArgs = {

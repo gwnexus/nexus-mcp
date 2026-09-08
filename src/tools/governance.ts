@@ -15,7 +15,7 @@ import { nexusPost } from '../nexus-api.js'
 // ---------------------------------------------------------------------------
 
 export const createAdrDraftSchema = {
-  project_id: z.string().uuid().describe('Project UUID'),
+  project_id: z.string().uuid().optional().describe('Project UUID (falls back to NEXUS_PROJECT_ID env var when omitted)'),
   title: z.string().max(500).describe('ADR title'),
   context: z
     .string()

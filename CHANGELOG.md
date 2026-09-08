@@ -2,6 +2,12 @@
 
 All notable changes to `@gwdn/nexus-mcp` are documented in this file.
 
+## [0.10.12] - 2026-09-08
+
+### Fixed
+
+- **Server-side fallback to `NEXUS_PROJECT_ID`** - MCP tools that accept an optional `project_id` argument now fall back to the `NEXUS_PROJECT_ID` environment variable when the caller omits it, instead of requiring an explicit and correct value on every call. Applies to `kb_search`, `kb_memory`, `project_update`, `vl_create`/`vl_inbox`/`vl_outbox`, `dispatch_create`/`dispatch_inbox`/`dispatch_outbox`/`dispatch_sweep`/`dispatch_related`, `task_create`/`task_list`, `doc_ingest`/`doc_list`, `session_create`/`session_list`, `sk_assign`/`sk_unassign`/`sk_export`, `pd_list`/`pd_create`, `directive_export`, and `adr_create`. If neither an explicit `project_id` argument nor `NEXUS_PROJECT_ID` is available, the tool now fails loudly with a `MissingProjectIdError` instead of silently proceeding unscoped. This is defense-in-depth against agents silently writing sessions/dispatches/decisions to the wrong project (Dispatch #5f5aa27c).
+
 ## [0.10.11] - 2026-08-22
 
 ### Added

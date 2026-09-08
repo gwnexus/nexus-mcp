@@ -13,7 +13,7 @@ import { nexusPost } from '../nexus-api.js'
 // ---------------------------------------------------------------------------
 
 export const listInboxSchema = {
-  project_id: z.string().uuid().describe('Project UUID'),
+  project_id: z.string().uuid().optional().describe('Project UUID (falls back to NEXUS_PROJECT_ID env var when omitted)'),
   status_filter: z
     .array(z.string().max(50))
     .optional()
@@ -68,7 +68,7 @@ export async function listInbox(args: ListInboxArgs) {
 // ---------------------------------------------------------------------------
 
 export const listOutboxSchema = {
-  project_id: z.string().uuid().describe('Project UUID'),
+  project_id: z.string().uuid().optional().describe('Project UUID (falls back to NEXUS_PROJECT_ID env var when omitted)'),
   status_filter: z
     .array(z.string().max(50))
     .optional()

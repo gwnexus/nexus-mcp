@@ -16,7 +16,7 @@ import { nexusPost } from '../nexus-api.js'
 // ---------------------------------------------------------------------------
 
 export const createSessionSchema = {
-  project_id: z.string().uuid().describe('Project UUID'),
+  project_id: z.string().uuid().optional().describe('Project UUID (falls back to NEXUS_PROJECT_ID env var when omitted)'),
   title: z.string().max(500).describe('Session title (e.g., "Architecture review")'),
   agent_id: z
     .string()
@@ -116,7 +116,7 @@ export async function closeSession(args: CloseSessionArgs) {
 
 
 export const listOpenSessionsSchema = {
-  project_id: z.string().uuid().describe('Project UUID'),
+  project_id: z.string().uuid().optional().describe('Project UUID (falls back to NEXUS_PROJECT_ID env var when omitted)'),
   limit: z
     .number()
     .int()
