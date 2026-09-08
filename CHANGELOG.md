@@ -2,6 +2,12 @@
 
 All notable changes to `@gwdn/nexus-mcp` are documented in this file.
 
+## [0.10.13] - 2026-09-08
+
+### Security
+
+- **CI audit fixes** - Bumped `tsx` devDependency from `^4.21.0` to `^4.23.13` to pull in `esbuild@0.28.2`, resolving the arbitrary file read advisory in esbuild's dev server on Windows (GHSA-g7r4-m6w7-qqqr). Also resolved via `npm audit fix`: `fast-uri` host confusion / SSRF advisories (GHSA-5jgf-p345-68v8, GHSA-f65p-4m7j-42xc, GHSA-fph4-wmhf-6fwf, GHSA-jqff-g426-hqxp) and `qs` array-limit bypass / DoS advisories (GHSA-x5fp-wj9c-mxmx, GHSA-4mjr-xmp4-gh2g). `npm audit` now reports 0 vulnerabilities. All are devDependency-only issues (build/test tooling), not present in the published `dist/` output.
+
 ## [0.10.12] - 2026-09-08
 
 ### Fixed

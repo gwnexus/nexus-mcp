@@ -1,6 +1,6 @@
 {
   "name": "@gwdn/nexus-mcp",
-  "version": "0.10.12",
+  "version": "0.10.13",
   "description": "MCP server for the Gatewarden Nexus platform — mediation layer between local agent runtimes and the Nexus HTTP API",
   "license": "Apache-2.0",
   "type": "module",
@@ -40,7 +40,7 @@
   },
   "devDependencies": {
     "@types/node": "^25.9.1",
-    "tsx": "^4.21.0",
+    "tsx": "^4.23.13",
     "typescript": "^5.8.3",
     "vitest": "^4.1.4"
   },
