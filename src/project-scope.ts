@@ -34,21 +34,24 @@ export function resolveProjectId(explicit?: string | null): string {
 }
 
 /**
- * Wrap a tool handler so that, if the incoming args object contains a
- * `project_id` key (i.e. the tool's schema declares one), an omitted or
- * empty value is resolved via NEXUS_PROJECT_ID before the handler runs.
- * Tools whose schema has no `project_id` field are unaffected.
+ * Wrap a tool handler whose schema declares an optional `project_id` field.
+ * Resolves the project scope via NEXUS_PROJECT_ID before the handler runs.
+ *
+ * Only wrap tools whose schema actually declares a `project_id` parameter --
+ * this helper always injects a resolved value, regardless of whether the
+ * caller's args object included the key at all. MCP clients commonly omit
+ * optional parameters entirely (no key present) rather than sending them as
+ * `undefined`, so checking for key presence would miss the common case and
+ * defeat the fallback.
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function withProjectFallback(handler: (args: any) => Promise<any>) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return async (args: any) => {
-    if (args && typeof args === 'object' && 'project_id' in args) {
-      return handler({
-        ...args,
-        project_id: resolveProjectId(args.project_id),
-      })
-    }
-    return handler(args)
+    const base = args && typeof args === 'object' ? args : {}
+    return handler({
+      ...base,
+      project_id: resolveProjectId(base.project_id),
+    })
   }
 }

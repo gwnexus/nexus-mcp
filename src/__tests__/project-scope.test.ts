@@ -81,13 +81,25 @@ describe('withProjectFallback', () => {
     expect(result.project_id).toBe(EXPLICIT_PROJECT_ID)
   })
 
-  it('does not touch args without a project_id key at all', async () => {
+  it('injects the env fallback when the project_id key is entirely absent from args', async () => {
+    // Real MCP clients typically omit optional parameters entirely rather
+    // than sending them as `undefined` -- this is the common case that must
+    // still trigger the fallback (see nexus-app dispatch 5f5aa27c).
     const handler = async (args: Record<string, unknown>) => args
     const wrapped = withProjectFallback(handler)
 
-    delete process.env.NEXUS_PROJECT_ID
     const result = await wrapped({ task_id: 'some-task' })
-    expect(result).toEqual({ task_id: 'some-task' })
+    expect(result).toEqual({ task_id: 'some-task', project_id: ENV_PROJECT_ID })
+  })
+
+  it('throws when the project_id key is entirely absent and no env fallback exists', async () => {
+    delete process.env.NEXUS_PROJECT_ID
+    const handler = async (args: Record<string, unknown>) => args
+    const wrapped = withProjectFallback(handler)
+
+    await expect(wrapped({ task_id: 'some-task' })).rejects.toThrow(
+      MissingProjectIdError,
+    )
   })
 
   it('throws when project_id key is present, undefined, and no env fallback exists', async () => {
