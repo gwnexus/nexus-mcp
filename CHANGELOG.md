@@ -2,12 +2,22 @@
 
 All notable changes to `@gwdn/nexus-mcp` are documented in this file.
 
-## [Unreleased]
+## [0.10.15] - 2026-09-27
 
 ### Added
 
 - **`task_create` / `task_update`: `category` parameter** - Optional `category` field (enum `coderabbit_fix`) forwarded to the nexus-hub task API. `task_update` accepts `null` to clear it. Aligns with nexus-hub migration 0178 (Dispatch #55bc7397).
 - **`doc_classify`: `coderabbit_review` classification** - New classification value for CodeRabbit review triage documents. Aligns with nexus-hub migration 0177 (Dispatch #55bc7397).
+
+## [0.10.14] - 2026-09-20
+
+### Fixed
+
+- **`project_id` fallback when the key is absent** - `withProjectFallback` previously resolved `NEXUS_PROJECT_ID` only when the caller's args contained a `project_id` key (even as `undefined`). MCP clients usually omit optional parameters entirely, so the fallback did not fire in the most common case. The resolved `project_id` is now always injected for wrapped tools (Dispatch #5f5aa27c).
+
+### Security
+
+- **gitleaks pre-commit hook** - Added a gitleaks pre-commit hook and a devbox init check to prevent committing secrets.
 
 ## [0.10.13] - 2026-09-08
 
