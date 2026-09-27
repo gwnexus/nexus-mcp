@@ -342,6 +342,25 @@ describe('Layer 2: Task tools', () => {
       expect(parsed.task_id).toBe(TEST_IDS.taskId)
     })
 
+    it('should forward category to the API', async () => {
+      vi.mocked(nexusPost).mockResolvedValue(
+        mockApiSuccess({ action: 'task_create', task_id: TEST_IDS.taskId }),
+      )
+
+      const { createTask } = await import('../tools/create-task.js')
+      await createTask({
+        project_id: TEST_IDS.projectId,
+        title: 'Fix CodeRabbit finding',
+        category: 'coderabbit_fix',
+        user_id: TEST_IDS.userId,
+      })
+
+      expect(nexusPost).toHaveBeenCalledWith(
+        '/api/mcp/tasks',
+        expect.objectContaining({ action: 'task_create', category: 'coderabbit_fix' }),
+      )
+    })
+
     it('should return error on API failure', async () => {
       vi.mocked(nexusPost).mockResolvedValue(mockApiError('FK violation'))
 
@@ -379,6 +398,24 @@ describe('Layer 2: Task tools', () => {
       expect(parsed.action).toBe('task_update')
       expect(parsed.previous_status).toBe('open')
       expect(parsed.new_status).toBe('in_progress')
+    })
+
+    it('should forward a null category to clear it', async () => {
+      vi.mocked(nexusPost).mockResolvedValue(
+        mockApiSuccess({ action: 'task_update', task_id: TEST_IDS.taskId }),
+      )
+
+      const { updateTaskStatus } = await import('../tools/update-task-status.js')
+      await updateTaskStatus({
+        task_id: TEST_IDS.taskId,
+        category: null,
+        user_id: TEST_IDS.userId,
+      })
+
+      expect(nexusPost).toHaveBeenCalledWith(
+        '/api/mcp/tasks',
+        expect.objectContaining({ action: 'task_update', category: null }),
+      )
     })
 
     it('should return error if task not found', async () => {
@@ -824,6 +861,11 @@ describe('Layer 2: doc_classify', () => {
     expect(result.isError).toBeUndefined()
     const parsed = parseToolResponse(result)
     expect(parsed.classification).toBe('mitigation_report')
+  })
+
+  it('should accept coderabbit_review in the classification schema', async () => {
+    const { classifyDocumentSchema } = await import('../tools/classify-document.js')
+    expect(classifyDocumentSchema.classification.safeParse('coderabbit_review').success).toBe(true)
   })
 
   it('should return error on API failure', async () => {

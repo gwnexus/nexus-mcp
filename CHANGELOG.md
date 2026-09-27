@@ -2,6 +2,13 @@
 
 All notable changes to `@gwdn/nexus-mcp` are documented in this file.
 
+## [Unreleased]
+
+### Added
+
+- **`task_create` / `task_update`: `category` parameter** - Optional `category` field (enum `coderabbit_fix`) forwarded to the nexus-hub task API. `task_update` accepts `null` to clear it. Aligns with nexus-hub migration 0178 (Dispatch #55bc7397).
+- **`doc_classify`: `coderabbit_review` classification** - New classification value for CodeRabbit review triage documents. Aligns with nexus-hub migration 0177 (Dispatch #55bc7397).
+
 ## [0.10.13] - 2026-09-08
 
 ### Security

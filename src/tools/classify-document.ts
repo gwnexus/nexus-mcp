@@ -24,6 +24,7 @@ export const classifyDocumentSchema = {
       'offer',
       'sow',
       'contract',
+      'coderabbit_review',
     ])
     .describe('New classification for the document'),
 }

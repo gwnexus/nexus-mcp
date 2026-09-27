@@ -1,7 +1,7 @@
 /**
  * task_update -- Layer 2 Coordination
  *
- * Updates a task's status, priority, assignee, title, or description.
+ * Updates a task's status, priority, assignee, title, description, or category.
  * All fields except task_id are optional — at least one must be provided.
  * Delegates to POST /api/mcp/tasks (action: task_update).
  */
@@ -35,6 +35,11 @@ export const updateTaskStatusSchema = {
     .nullable()
     .optional()
     .describe('Updated task description (optional, null to clear)'),
+  category: z
+    .enum(['coderabbit_fix'])
+    .nullable()
+    .optional()
+    .describe('Task category (optional, null to clear). coderabbit_fix marks a fix derived from a CodeRabbit review'),
   agent_id: z.string().max(200).optional().describe('Agent identifier if applicable'),
 }
 
@@ -45,6 +50,7 @@ type UpdateTaskStatusArgs = {
   assignee?: string
   title?: string
   description?: string | null
+  category?: string | null
   user_id: string
   agent_id?: string
 }
@@ -58,6 +64,7 @@ export async function updateTaskStatus(args: UpdateTaskStatusArgs) {
     assignee: args.assignee,
     title: args.title,
     description: args.description,
+    category: args.category,
     agent_id: args.agent_id,
   })
 

@@ -21,6 +21,10 @@ export const createTaskSchema = {
     .enum(['open', 'in_progress', 'blocked', 'done', 'cancelled'])
     .default('open')
     .describe('Initial task status'),
+  category: z
+    .enum(['coderabbit_fix'])
+    .optional()
+    .describe('Task category (optional). coderabbit_fix marks a fix derived from a CodeRabbit review'),
   agent_id: z.string().max(200).optional().describe('Agent identifier if applicable'),
 }
 
@@ -31,6 +35,7 @@ type CreateTaskArgs = {
   priority?: string
   assignee?: string
   status?: string
+  category?: string
   user_id: string
   agent_id?: string
 }
@@ -44,6 +49,7 @@ export async function createTask(args: CreateTaskArgs) {
     priority: args.priority ?? 'medium',
     assignee: args.assignee,
     status: args.status ?? 'open',
+    category: args.category,
   })
 
   if (!result.ok) {

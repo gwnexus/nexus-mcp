@@ -455,7 +455,7 @@ server.tool(
 
 server.tool(
   'task_update',
-  'Update a task: status, priority, assignee, title, or description. All fields except task_id are optional — at least one must be provided. Status changes are automatically recorded in the audit trail.',
+  'Update a task: status, priority, assignee, title, description, or category. All fields except task_id are optional — at least one must be provided. Status changes are automatically recorded in the audit trail.',
   updateTaskStatusSchema,
   withIdentity(updateTaskStatus),
 )
@@ -497,7 +497,7 @@ server.tool(
 
 server.tool(
   'doc_classify',
-  'Update the classification of an ingest item. Valid classifications: unclassified, research_note, planning_item, decision_input, reference, archive, mitigation_report, review_paper, pr_draft, offer, sow, contract.',
+  'Update the classification of an ingest item. Valid classifications: unclassified, research_note, planning_item, decision_input, reference, archive, mitigation_report, review_paper, pr_draft, offer, sow, contract, coderabbit_review.',
   classifyDocumentSchema,
   withIdentity(classifyDocument),
 )
