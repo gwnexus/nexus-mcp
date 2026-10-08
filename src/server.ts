@@ -78,6 +78,7 @@ import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 
 import { getIdentity, initIdentity } from './auth.js'
 import { withProjectFallback } from './project-scope.js'
+import { SERVER_VERSION } from './version.js'
 
 // Layer 1: Knowledge Access
 import { projectList, projectListSchema } from './tools/project-list.js'
@@ -266,7 +267,7 @@ function withIdentity(handler: (args: any) => Promise<any>) {
 const server = new McpServer(
   {
     name: 'nexus-mcp',
-    version: '0.10.2',
+    version: SERVER_VERSION,
   },
   {
     capabilities: {

@@ -206,8 +206,10 @@ nexus-mcp/
 │   ├── auth.ts            # Token-based identity resolution via Nexus API
 │   ├── nexus-api.ts       # HTTP client for Nexus API (nexusGet, nexusPost)
 │   ├── machine-id.ts      # Machine identification for session metadata
+│   ├── project-scope.ts   # NEXUS_PROJECT_ID fallback for project-scoped tools
+│   ├── version.ts         # Package version for MCP serverInfo (read from package.json)
 │   ├── tools/             # 27 tool modules (62 tools total)
-│   └── __tests__/         # 14 test files (164 unit + 34 E2E)
+│   └── __tests__/         # 17 test files (205 unit + 34 E2E)
 ├── LICENSE                # Apache-2.0
 ├── SECURITY.md            # Security policy
 ├── CONTRIBUTING.md        # Contribution guidelines
