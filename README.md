@@ -57,7 +57,7 @@ Supabase (PostgreSQL + RLS)
 | `kb_get` | Retrieve a specific entity by type and ID |
 | `kb_related` | Find entities related to a given entity |
 | `project_list` | List accessible projects |
-| `project_update` | Patch a project's readme and/or description (partial update) |
+| `project_update` | Patch a project's readme and/or description (partial update). `description` is one short plain-text sentence (listing subtitle); long-form Markdown goes into `readme` |
 
 ### Layer 2 -- Coordination (48 tools)
 
@@ -71,6 +71,51 @@ Supabase (PostgreSQL + RLS)
 | **Decision Comments** | `dc_add`, `dc_list` |
 | **Skills** | `sk_list`, `sk_get`, `sk_create`, `sk_update`, `sk_activate`, `sk_assign`, `sk_unassign`, `sk_export` |
 | **Directives** | `pd_list`, `pd_get`, `pd_create`, `pd_update`, `pd_delete`, `pd_toggle`, `directive_export` |
+
+#### Directives: short binding rules (ADR-0125)
+
+A directive is one short binding rule. `pd_list` returns the effective list per
+project, and every entry carries a `source`:
+
+| `source` | Origin | Editable via `pd_update` |
+|---|---|---|
+| `mandatory` | Platform catalog, always active | no |
+| `flag` | Platform catalog, switched by a project setting (`nexus env set policy.<key>`) | no |
+| `template` | Default/optional catalog rule added to the project | `enabled` only |
+| `project` | Rule written for this project | yes |
+
+Fields for `pd_create` / `pd_update`:
+
+| Field | Notes |
+|---|---|
+| `rule` | One imperative sentence, at most 240 characters. Always rendered to agents. |
+| `rationale` | Background, at most 2000 characters. Never sent to agents. |
+| `level` | `must` \| `should` |
+| `category` | `commits` \| `language` \| `docs` \| `security` \| `workflow` \| `operations` \| `communication` |
+| `sort_order` | Integer, ascending |
+| `enabled` | Boolean |
+| `template_slug` / `template_id` | `pd_create` only: add a default/optional catalog rule instead of writing your own. Cannot be combined with rule fields. |
+
+`title`, `body` and `priority` are deprecated aliases for `rule`, `rationale` and
+`level` (`high` maps to `must`). The backend no longer accepts the legacy
+`general` category.
+
+```jsonc
+// project rule
+{ "rule": "Write commit messages in English.", "level": "must", "category": "commits" }
+// catalog rule
+{ "template_slug": "<catalog-slug>" }
+```
+
+#### Skills: description and invocation (ADR-0124)
+
+`sk_create` requires `description` (1 to 500 characters, not blank): one line
+saying what the skill does and when to use it. Agents pick skills by it.
+`sk_create` and `sk_update` accept an optional `invocation`:
+
+- `model` (default): the agent may load the skill on its own.
+- `user`: only on explicit request (`/command`); rendered as
+  `disable-model-invocation` for Claude Code.
 
 ### Layer 3 -- Governance (3 tools)
 

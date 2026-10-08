@@ -4,6 +4,7 @@
  */
 
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { z } from 'zod'
 import { mockApiError, mockApiSuccess, parseToolResponse, TEST_IDS } from './helpers'
 
 vi.mock('../nexus-api.js', () => ({
@@ -976,6 +977,7 @@ describe('Layer 2: Skill tools', () => {
       const result = await skCreate({
         skill_id: 'nx-test-skill',
         name: 'Test Skill',
+        description: 'Runs the test workflow; use when verifying skills.',
         body: '# Test\n\nSkill body',
         user_id: TEST_IDS.userId,
       })
@@ -995,7 +997,100 @@ describe('Layer 2: Skill tools', () => {
       const result = await skCreate({
         skill_id: 'nx-duplicate',
         name: 'Duplicate Skill',
+        description: 'Duplicate skill.',
         body: '# Dup',
+        user_id: TEST_IDS.userId,
+      })
+
+      expect(result.isError).toBe(true)
+    })
+  })
+
+  describe('skCreate / skUpdate schemas (ADR-0124)', () => {
+    it('requires a non-blank description of at most 500 characters on sk_create', async () => {
+      const { skCreateSchema } = await import('../tools/skills.js')
+      const input = z.object(skCreateSchema)
+      const base = { skill_id: 'nx-x', name: 'X', body: '# X' }
+
+      expect(input.safeParse(base).success).toBe(false)
+      expect(input.safeParse({ ...base, description: '' }).success).toBe(false)
+      expect(input.safeParse({ ...base, description: '   ' }).success).toBe(false)
+      expect(input.safeParse({ ...base, description: 'x'.repeat(501) }).success).toBe(false)
+      expect(input.safeParse({ ...base, description: 'Does X; use when Y.' }).success).toBe(true)
+      const docs = (z.toJSONSchema(z.object(skCreateSchema)) as any).properties
+      expect(docs.description.description).toBe(
+        'One line saying what the skill does and when to use it; agents pick skills by it',
+      )
+    })
+
+    it('rejects a blank description on sk_update but allows omitting it', async () => {
+      const { skUpdateSchema } = await import('../tools/skills.js')
+      const input = z.object(skUpdateSchema)
+
+      expect(input.safeParse({ skill_id: 'nx-x' }).success).toBe(true)
+      expect(input.safeParse({ skill_id: 'nx-x', description: ' ' }).success).toBe(false)
+    })
+
+    it('accepts invocation model | user only', async () => {
+      const { skCreateSchema, skUpdateSchema } = await import('../tools/skills.js')
+      const create = z.object(skCreateSchema)
+      const update = z.object(skUpdateSchema)
+      const base = { skill_id: 'nx-x', name: 'X', body: '# X', description: 'Does X.' }
+
+      expect(create.safeParse({ ...base, invocation: 'user' }).success).toBe(true)
+      expect(create.safeParse({ ...base, invocation: 'model' }).success).toBe(true)
+      expect(create.safeParse({ ...base, invocation: 'agent' }).success).toBe(false)
+      expect(update.safeParse({ skill_id: 'nx-x', invocation: 'user' }).success).toBe(true)
+      expect(update.safeParse({ skill_id: 'nx-x', invocation: 'always' }).success).toBe(false)
+      const docs = (z.toJSONSchema(z.object(skCreateSchema)) as any).properties
+      expect(docs.invocation.description).toContain('disable-model-invocation')
+      expect(docs.description.maxLength).toBe(500)
+    })
+
+    it('passes description and invocation through unchanged on sk_create', async () => {
+      vi.mocked(nexusPost).mockResolvedValue(mockApiSuccess({ action: 'sk_create' }))
+
+      const { skCreate } = await import('../tools/skills.js')
+      await skCreate({
+        skill_id: 'nx-deploy',
+        name: 'Deploy',
+        description: 'Deploys to staging; run only on request.',
+        invocation: 'user',
+        body: '# Deploy',
+        user_id: TEST_IDS.userId,
+      })
+
+      expect(vi.mocked(nexusPost)).toHaveBeenCalledWith(
+        '/api/mcp/skills',
+        expect.objectContaining({
+          action: 'sk_create',
+          description: 'Deploys to staging; run only on request.',
+          invocation: 'user',
+        }),
+      )
+    })
+
+    it('passes invocation through on sk_update', async () => {
+      vi.mocked(nexusPost).mockResolvedValue(mockApiSuccess({ action: 'sk_update' }))
+
+      const { skUpdate } = await import('../tools/skills.js')
+      await skUpdate({ skill_id: 'nx-deploy', invocation: 'model', user_id: TEST_IDS.userId })
+
+      expect(vi.mocked(nexusPost)).toHaveBeenCalledWith(
+        '/api/mcp/skills',
+        expect.objectContaining({ action: 'sk_update', skill_id: 'nx-deploy', invocation: 'model' }),
+      )
+    })
+
+    it('surfaces the backend 400 for a missing description', async () => {
+      vi.mocked(nexusPost).mockResolvedValue(mockApiError('description is required', 400))
+
+      const { skCreate } = await import('../tools/skills.js')
+      const result = await skCreate({
+        skill_id: 'nx-x',
+        name: 'X',
+        description: 'x',
+        body: '# X',
         user_id: TEST_IDS.userId,
       })
 

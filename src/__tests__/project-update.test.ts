@@ -7,6 +7,7 @@
  *   - Happy path: both fields provided
  *   - Validation error: neither field provided
  *   - API error passthrough
+ *   - Schema descriptions steer description vs. readme
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest'
@@ -121,5 +122,16 @@ describe('project_update', () => {
     expect(result.isError).toBe(true)
     const parsed = parseToolResponse(result)
     expect(parsed.error).toBe('Forbidden')
+  })
+
+  it('describes description as a one-sentence subtitle and readme as long-form Markdown', async () => {
+    const { projectUpdateSchema } = await import('../tools/project-update.js')
+    const { z } = await import('zod')
+    const docs = (z.toJSONSchema(z.object(projectUpdateSchema)) as any).properties
+
+    expect(docs.description.description).toContain('One short plain-text sentence')
+    expect(docs.description.description).toContain('readme')
+    expect(docs.readme.description).toContain('overview, architecture, tech stack')
+    expect(docs.readme.description).toContain('depth: standard')
   })
 })

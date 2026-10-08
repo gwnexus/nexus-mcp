@@ -15,12 +15,16 @@ export const projectUpdateSchema = {
     .string()
     .max(100_000)
     .optional()
-    .describe('Full Markdown project overview (surfaced to agents at depth: standard)'),
+    .describe(
+      'Long-form Markdown about the project (overview, architecture, tech stack); agents see it at depth: standard',
+    ),
   description: z
     .string()
     .max(1_000)
     .optional()
-    .describe('Short plain-text subtitle shown in project listings'),
+    .describe(
+      'One short plain-text sentence (the subtitle in listings); long-form Markdown goes into readme',
+    ),
 }
 
 type ProjectUpdateArgs = {

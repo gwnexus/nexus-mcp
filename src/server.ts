@@ -316,7 +316,7 @@ server.tool(
 
 server.tool(
   'project_update',
-  'Update a project readme and/or description. At least one field must be provided. Partial update — only supplied fields are patched.',
+  'Update a project readme and/or description. At least one field must be provided. Partial update — only supplied fields are patched. `description` is one short plain-text sentence (the subtitle in listings); long-form Markdown about the project (overview, architecture, tech stack) goes into `readme`, which agents see at depth standard.',
   projectUpdateSchema,
   withIdentity(withProjectFallback(projectUpdate)),
 )
@@ -582,14 +582,14 @@ server.tool(
 
 server.tool(
   'sk_create',
-  'Create a new skill in draft status. Optionally auto-generates an OpenCode command. Skill content is markdown-based instruction text.',
+  'Create a new skill in draft status. Optionally auto-generates an OpenCode command. Skill content is markdown-based instruction text. `description` is required (one line, at most 500 characters): agents pick skills by it. Set `invocation: user` for skills that should only run on explicit /command request.',
   skCreateSchema,
   withIdentity(skCreate),
 )
 
 server.tool(
   'sk_update',
-  'Update an existing skill content, metadata, or command auto-generation setting. Increments version when body changes.',
+  'Update an existing skill content, metadata (description, invocation), or command auto-generation setting. Increments version when body changes. `description` cannot be blank.',
   skUpdateSchema,
   withIdentity(skUpdate),
 )
@@ -628,7 +628,7 @@ server.tool(
 
 server.tool(
   'pd_list',
-  'List project directives with optional enabled filter. Returns directives ordered by priority and creation date.',
+  'List the effective project directives with optional enabled filter: id, source (mandatory | flag | template | project), template_slug, flag_key, rule, rationale, level, category, sort_order, enabled. Mandatory and flag rules come from the platform catalog and project settings and cannot be edited with pd_update (flags change via the settings API / `nexus env set policy.<key>`).',
   pdListSchema,
   withIdentity(withProjectFallback(pdList)),
 )
@@ -642,14 +642,14 @@ server.tool(
 
 server.tool(
   'pd_create',
-  'Create a new project directive. Directives are project-scoped rules/policies that guide agent behavior.',
+  'Create a project directive: a short binding rule for agents. Either write a project rule (`rule`: one imperative sentence, at most 240 characters; background goes into `rationale`, which is never sent to agents) or add a default/optional rule from the platform catalog via `template_slug`. title/body/priority are deprecated aliases.',
   pdCreateSchema,
   withIdentity(withProjectFallback(pdCreate)),
 )
 
 server.tool(
   'pd_update',
-  'Update an existing project directive. Supports partial updates for title, body, category, priority, and enabled state.',
+  'Update a project directive. Partial update of rule, rationale, level, category, sort_order and enabled. Catalog references (source: template) accept only enabled; mandatory and flag rules cannot be updated here. title/body/priority are deprecated aliases.',
   pdUpdateSchema,
   withIdentity(pdUpdate),
 )

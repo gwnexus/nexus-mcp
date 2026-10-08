@@ -103,10 +103,28 @@ export async function skGet(args: SkGetArgs) {
 // sk_create
 // ---------------------------------------------------------------------------
 
+export const SKILL_INVOCATIONS = ['model', 'user'] as const
+
+export const SKILL_DESCRIPTION_MAX = 500
+
+const skillDescriptionField = z
+  .string()
+  .min(1)
+  .max(SKILL_DESCRIPTION_MAX)
+  .regex(/\S/, 'description must not be blank')
+  .describe('One line saying what the skill does and when to use it; agents pick skills by it')
+
+const skillInvocationField = z
+  .enum(SKILL_INVOCATIONS)
+  .describe(
+    'user: only on explicit request (/command), rendered as disable-model-invocation for Claude Code; model: the agent may load it on its own (default)',
+  )
+
 export const skCreateSchema = {
   skill_id: z.string().max(200).describe('Skill identifier (e.g., nx-init-nexus)'),
   name: z.string().max(500).describe('Human-readable skill name'),
-  description: z.string().max(1000).optional().describe('Short description'),
+  description: skillDescriptionField,
+  invocation: skillInvocationField.optional(),
   body: z.string().max(100_000).describe('Full markdown instruction content'),
   auto_generate_command: z
     .boolean()
@@ -117,7 +135,8 @@ export const skCreateSchema = {
 type SkCreateArgs = {
   skill_id: string
   name: string
-  description?: string
+  description: string
+  invocation?: string
   body: string
   auto_generate_command?: boolean
   user_id: string
@@ -129,6 +148,7 @@ export async function skCreate(args: SkCreateArgs) {
     skill_id: args.skill_id,
     name: args.name,
     description: args.description,
+    invocation: args.invocation,
     body: args.body,
     auto_generate_command: args.auto_generate_command ?? true,
   })
@@ -162,7 +182,8 @@ export const skUpdateSchema = {
     .max(200)
     .describe('Skill identifier (e.g., nx-init-nexus) or UUID'),
   name: z.string().max(500).optional().describe('Updated name'),
-  description: z.string().max(1000).optional().describe('Updated description'),
+  description: skillDescriptionField.optional(),
+  invocation: skillInvocationField.optional(),
   body: z.string().max(100_000).optional().describe('Updated markdown content'),
   auto_generate_command: z
     .boolean()
@@ -174,6 +195,7 @@ type SkUpdateArgs = {
   skill_id: string
   name?: string
   description?: string
+  invocation?: string
   body?: string
   auto_generate_command?: boolean
   user_id: string
@@ -185,6 +207,7 @@ export async function skUpdate(args: SkUpdateArgs) {
     skill_id: args.skill_id,
     name: args.name,
     description: args.description,
+    invocation: args.invocation,
     body: args.body,
     auto_generate_command: args.auto_generate_command,
   })
