@@ -2,6 +2,30 @@
 
 All notable changes to `@gwdn/nexus-mcp` are documented in this file.
 
+## [0.10.16] - 2026-10-08
+
+### Added
+
+- **`pd_create` / `pd_update`: short directive rules (ADR-0125)** - New fields `rule` (one imperative sentence, max 240 chars), `rationale` (max 2000 chars, never sent to agents), `level` (`must` | `should`), `category` (enum `commits`, `language`, `docs`, `security`, `workflow`, `operations`, `communication`) and `sort_order` (integer). Aligns with nexus-app migrations 0258/0259 (Dispatch #8761ec10).
+- **`pd_create`: catalog references** - `template_slug` / `template_id` add a default or optional rule from the platform directive catalog. The tool rejects a catalog reference combined with rule fields, and a call with neither a rule nor a catalog reference, before contacting the backend.
+- **`sk_create` / `sk_update`: `invocation`** - Optional enum `model` | `user`; `user` is rendered as `disable-model-invocation` for Claude Code. Aligns with nexus-app migration 0257 (Dispatch #21f19e68).
+
+### Changed
+
+- **`sk_create`: `description` is required** - 1 to 500 characters, not blank; `sk_update` rejects a blank description. Matches the backend constraint `skills_description_required` (ADR-0124, Dispatch #21f19e68).
+- **`pd_create` / `pd_update`: legacy fields deprecated** - `title`, `body` and `priority` stay accepted as aliases for `rule`, `rationale` and `level`, but are marked deprecated. `pd_create` no longer sends the default category `general` (rejected by the backend now) or the default priority `medium`.
+- **`pd_list` description** - Documents the effective list (`source`: `mandatory` | `flag` | `template` | `project`) and that mandatory and flag rules cannot be edited with `pd_update`.
+- **`project_update` description** - `description` is one short plain-text sentence (listing subtitle); long-form Markdown about the project goes into `readme`, which agents see at depth standard (Dispatch #8761ec10).
+
+### Fixed
+
+- **Server version in MCP `serverInfo`** - The version reported to MCP clients was hardcoded to `0.10.2` since that release. It is now read from `package.json` at runtime (`src/version.ts`), so it always matches the installed package.
+
+### Security
+
+- **`@modelcontextprotocol/sdk` floor raised to `^1.31.0`** - Excludes SDK versions affected by GHSA-6qxp-vccf-f47h (high; OAuth client could send credentials to an authorization server chosen by the MCP server). nexus-mcp does not use the SDK's OAuth client, and fresh installs already resolved to a patched version; the lockfile now pins 1.32.1 for CI.
+- **Lockfile refresh** - Transitive updates within existing semver ranges resolve `proxy-addr` (critical), `source-map-js` (high), `hono`, `ip-address`, `fast-uri` and `vitest`/`@vitest/mocker` (moderate) advisories. `npm audit` now reports 0 vulnerabilities; the CI audit step (`--audit-level=high`) passes again.
+
 ## [0.10.15] - 2026-09-27
 
 ### Added
