@@ -23,12 +23,18 @@ export const createSessionSchema = {
     .max(200)
     .optional()
     .describe('Agent identifier starting this session'),
+  release_line: z
+    .string()
+    .regex(/^\d+\.\d+\.\d+$/)
+    .optional()
+    .describe('Release line this session belongs to, e.g. 0.17.0; derived from a staging/release-X.Y.Z title when omitted'),
 }
 
 type CreateSessionArgs = {
   project_id: string
   title: string
   agent_id?: string
+  release_line?: string
   user_id: string
 }
 
@@ -37,6 +43,7 @@ export async function createSession(args: CreateSessionArgs) {
     action: 'session_create',
     project_id: args.project_id,
     title: args.title,
+    release_line: args.release_line,
   })
 
   if (!result.ok) {
@@ -124,11 +131,17 @@ export const listOpenSessionsSchema = {
     .max(100)
     .default(25)
     .describe('Maximum number of sessions to return (default 25)'),
+  release_line: z
+    .string()
+    .regex(/^\d+\.\d+\.\d+$/)
+    .optional()
+    .describe('Only return open sessions of this release line, e.g. 0.17.0 (exact match)'),
 }
 
 type ListOpenSessionsArgs = {
   project_id: string
   limit?: number
+  release_line?: string
 }
 
 export async function listOpenSessions(args: ListOpenSessionsArgs) {
@@ -136,6 +149,7 @@ export async function listOpenSessions(args: ListOpenSessionsArgs) {
     action: 'session_list',
     project_id: args.project_id,
     limit: args.limit ?? 25,
+    release_line: args.release_line,
   })
 
   if (!result.ok) {

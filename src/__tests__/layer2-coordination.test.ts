@@ -63,6 +63,51 @@ describe('Layer 2: Session tools', () => {
     })
   })
 
+  describe('release_line', () => {
+    it('should forward release_line on session_create and return it', async () => {
+      vi.mocked(nexusPost).mockResolvedValue(
+        mockApiSuccess({ action: 'session_create', id: TEST_IDS.sessionId, release_line: '0.17.0' }),
+      )
+
+      const { createSession } = await import('../tools/sessions.js')
+      const result = await createSession({
+        project_id: TEST_IDS.projectId,
+        title: 'Test Session',
+        release_line: '0.17.0',
+        user_id: TEST_IDS.userId,
+      })
+
+      expect(vi.mocked(nexusPost).mock.lastCall?.[1]).toMatchObject({ release_line: '0.17.0' })
+      expect(parseToolResponse(result).release_line).toBe('0.17.0')
+    })
+
+    it('should forward release_line filter on session_list and keep it per session', async () => {
+      vi.mocked(nexusPost).mockResolvedValue(
+        mockApiSuccess({
+          action: 'session_list',
+          count: 1,
+          sessions: [{ id: 'sess-1', status: 'open', release_line: '0.17.0' }],
+        }),
+      )
+
+      const { listOpenSessions } = await import('../tools/sessions.js')
+      const result = await listOpenSessions({ project_id: TEST_IDS.projectId, release_line: '0.17.0' })
+
+      expect(vi.mocked(nexusPost).mock.lastCall?.[1]).toMatchObject({ release_line: '0.17.0' })
+      expect(parseToolResponse(result).data.sessions[0].release_line).toBe('0.17.0')
+    })
+
+    it('should accept X.Y.Z and reject other formats', async () => {
+      const { createSessionSchema, listOpenSessionsSchema } = await import('../tools/sessions.js')
+      for (const schema of [createSessionSchema.release_line, listOpenSessionsSchema.release_line]) {
+        expect(schema.safeParse('0.17.0').success).toBe(true)
+        expect(schema.safeParse(undefined).success).toBe(true)
+        expect(schema.safeParse('v0.17.0').success).toBe(false)
+        expect(schema.safeParse('0.17').success).toBe(false)
+      }
+    })
+  })
+
   describe('closeSession', () => {
     it('should close a session', async () => {
       vi.mocked(nexusPost).mockResolvedValue(
@@ -281,7 +326,7 @@ describe('Layer 2: session_append', () => {
       user_id: TEST_IDS.userId,
     })
 
-    const call = vi.mocked(nexusPost).mock.calls[0][1] as Record<string, unknown>
+    const call = vi.mocked(nexusPost).mock.lastCall?.[1] as Record<string, unknown>
     expect(call).not.toHaveProperty('metadata')
   })
 
