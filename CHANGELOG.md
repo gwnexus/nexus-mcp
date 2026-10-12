@@ -2,6 +2,12 @@
 
 All notable changes to `@gwdn/nexus-mcp` are documented in this file.
 
+## [0.10.18] - 2026-10-12
+
+### Security
+
+- **npm trusted publishing (OIDC)** - The release workflow publishes with a short-lived OIDC token instead of the long-lived `NPM_TOKEN` secret (task cc96d858). The release job runs on a GitHub-hosted runner (`ubuntu-latest`, required by npm trusted publishing) with Node 24 and npm 11. Packages now carry an npm provenance attestation.
+
 ## [0.10.17] - 2026-10-12
 
 ### Added
