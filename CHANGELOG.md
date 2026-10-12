@@ -2,6 +2,16 @@
 
 All notable changes to `@gwdn/nexus-mcp` are documented in this file.
 
+## [0.10.17] - 2026-10-12
+
+### Added
+
+- **`session_create` / `session_list`: `release_line`** - Optional `release_line` (format `X.Y.Z`, e.g. `0.17.0`). `session_create` passes it through; when omitted, the hub derives it from a `staging/release-X.Y.Z` title. `session_list` filters open sessions by exact match. Both responses include `release_line`. Requires nexus-hub 0.17.0 (migration 0264); older hubs ignore the parameter (Dispatch #e2cef7a9).
+
+### Security
+
+- **gitleaks ruleset was empty** - `.gitleaks.toml` defined only an allowlist without `[extend] useDefault = true`, so the pre-commit hook ran with zero rules and never blocked a commit. The config now extends the built-in rules; a full history scan (73 commits) found no leaks. New CI job `gitleaks-config` runs `scripts/check-gitleaks-config.sh`, which expects exactly one finding for a synthetic GitHub PAT. `.nexus/credentials.toml` is now gitignored (Dispatch #71e4128b).
+
 ## [0.10.16] - 2026-10-08
 
 ### Added
