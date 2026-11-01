@@ -2,6 +2,20 @@
 
 All notable changes to `@gwdn/nexus-mcp` are documented in this file.
 
+## [0.10.19] - 2026-11-01
+
+### Fixed
+
+- **HTTP status lost on non-JSON error responses** - `nexusApi()` parsed the body as JSON before checking `response.ok`, so an empty or HTML error body (405, 500, 502/504 from the edge) surfaced as status `0` with `Unexpected end of JSON input`. The body is now read as text and parsed only when non-empty. Non-OK responses keep the real status and report the JSON `error` (with `ref` when present) or `HTTP <status> <statusText>` plus a short sanitized body snippet (max 200 chars, tokens redacted). An OK response with invalid JSON returns `Invalid JSON response (HTTP <status>)`. Status `0` is reserved for network errors and timeouts.
+
+### Changed
+
+- **`kb_search` description** - Notes that keyword is the default mode and that semantic search is opt-in on the server; hybrid mode then returns keyword results with a `warning` field, which is passed through in the tool output.
+
+### Removed
+
+- **README: `NEXUS_SEC_OPENAI_API_KEY`** - The MCP server never reads this variable; embeddings run on the Nexus app.
+
 ## [0.10.18] - 2026-10-12
 
 ### Security
