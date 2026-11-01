@@ -29,7 +29,7 @@ export const searchKnowledgeSchema = {
   search_mode: z
     .enum(['keyword', 'semantic', 'hybrid'])
     .default('keyword')
-    .describe('Search mode: keyword, semantic, or hybrid'),
+    .describe('Search mode: keyword (default), semantic, or hybrid. Semantic is opt-in on the server; hybrid falls back to keyword results with a warning'),
   limit: z
     .number()
     .int()

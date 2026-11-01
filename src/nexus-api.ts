@@ -77,6 +77,37 @@ export interface NexusApiResponse<T = unknown> {
 /** Default HTTP timeout in milliseconds (30 seconds). */
 const DEFAULT_TIMEOUT_MS = 30_000
 
+/** Maximum length of a response body snippet included in error messages. */
+const BODY_SNIPPET_MAX = 200
+
+/**
+ * Build a short, single-line body snippet for error messages.
+ * Collapses whitespace and redacts anything that looks like a token.
+ */
+function bodySnippet(text: string): string {
+  const flat = text
+    .replace(/\s+/g, ' ')
+    .trim()
+    .replace(/nxs_pat_[A-Za-z0-9_-]+/g, '[redacted]')
+    .replace(/Bearer\s+[A-Za-z0-9._~+/=-]+/gi, 'Bearer [redacted]')
+  return flat.length > BODY_SNIPPET_MAX ? `${flat.slice(0, BODY_SNIPPET_MAX)}...` : flat
+}
+
+/**
+ * Build the error message for a non-OK response. Prefers the JSON `error`
+ * field (with `ref` when present), otherwise falls back to the HTTP status
+ * line plus a sanitized body snippet.
+ */
+function httpErrorMessage(response: Response, text: string, json: unknown): string {
+  const body = json && typeof json === 'object' ? (json as Record<string, unknown>) : null
+  if (typeof body?.error === 'string') {
+    return typeof body.ref === 'string' ? `${body.error} (ref: ${body.ref})` : body.error
+  }
+  const statusLine = `HTTP ${response.status}${response.statusText ? ` ${response.statusText}` : ''}`
+  const snippet = bodySnippet(text)
+  return snippet ? `${statusLine}: ${snippet}` : statusLine
+}
+
 /**
  * Make an authenticated request to the Nexus API.
  */
@@ -103,32 +134,22 @@ export async function nexusApi<T = unknown>(
     ...(options.headers ?? {}),
   }
 
+  const fetchOpts: RequestInit = {
+    method,
+    headers,
+    signal: AbortSignal.timeout(options.timeoutMs ?? DEFAULT_TIMEOUT_MS),
+  }
+  if (options.body !== undefined) {
+    fetchOpts.body = JSON.stringify(options.body)
+  }
+
+  let response: Response
+  let text: string
   try {
-    const fetchOpts: RequestInit = {
-      method,
-      headers,
-      signal: AbortSignal.timeout(options.timeoutMs ?? DEFAULT_TIMEOUT_MS),
-    }
-    if (options.body !== undefined) {
-      fetchOpts.body = JSON.stringify(options.body)
-    }
-
-    const response = await fetch(url, fetchOpts)
-    const data = (await response.json()) as T & { error?: string }
-
-    if (!response.ok) {
-      return {
-        ok: false,
-        status: response.status,
-        data: null,
-        error:
-          (data as Record<string, unknown>)?.error as string ??
-          `HTTP ${response.status}`,
-      }
-    }
-
-    return { ok: true, status: response.status, data, error: null }
+    response = await fetch(url, fetchOpts)
+    text = await response.text()
   } catch (err) {
+    // Network errors and timeouts only: no HTTP status is available.
     return {
       ok: false,
       status: 0,
@@ -136,6 +157,36 @@ export async function nexusApi<T = unknown>(
       error: err instanceof Error ? err.message : 'Unknown fetch error',
     }
   }
+
+  let json: unknown = null
+  let parseFailed = false
+  if (text.trim()) {
+    try {
+      json = JSON.parse(text)
+    } catch {
+      parseFailed = true
+    }
+  }
+
+  if (!response.ok) {
+    return {
+      ok: false,
+      status: response.status,
+      data: null,
+      error: httpErrorMessage(response, text, json),
+    }
+  }
+
+  if (parseFailed) {
+    return {
+      ok: false,
+      status: response.status,
+      data: null,
+      error: `Invalid JSON response (HTTP ${response.status})`,
+    }
+  }
+
+  return { ok: true, status: response.status, data: json as T, error: null }
 }
 
 /**

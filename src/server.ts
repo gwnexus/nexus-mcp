@@ -282,7 +282,7 @@ const server = new McpServer(
 
 server.tool(
   'kb_search',
-  'Search project knowledge using keyword, semantic, or hybrid mode. Applies project scope filters before retrieval. Returns matching entities with relevance ranking.',
+  'Search project knowledge using keyword, semantic, or hybrid mode. Keyword is the default. Semantic search is opt-in on the server: when it is disabled, semantic mode returns an error and hybrid mode returns keyword results with a `warning` field. Applies project scope filters before retrieval. Returns matching entities with relevance ranking.',
   searchKnowledgeSchema,
   withProjectFallback(searchKnowledge),
 )

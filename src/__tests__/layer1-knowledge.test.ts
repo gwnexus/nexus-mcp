@@ -73,6 +73,29 @@ describe('Layer 1: kb_search', () => {
     expect(parsed.data.results).toEqual([])
   })
 
+  it('should pass a server warning through to the tool output', async () => {
+    vi.mocked(nexusPost).mockResolvedValue(
+      mockApiSuccess({
+        total_results: 0,
+        results: [],
+        warning: 'Semantic search is not enabled on this server. Showing keyword results.',
+      }),
+    )
+
+    const { searchKnowledge } = await import('../tools/search-knowledge.js')
+    const result = await searchKnowledge({
+      query: 'test',
+      project_id: TEST_IDS.projectId,
+      search_mode: 'hybrid',
+    })
+
+    expect(result.isError).toBeUndefined()
+    const parsed = parseToolResponse(result)
+    expect(parsed.data.warning).toBe(
+      'Semantic search is not enabled on this server. Showing keyword results.',
+    )
+  })
+
   it('should pass correct parameters to the API', async () => {
     vi.mocked(nexusPost).mockResolvedValue(
       mockApiSuccess({ total_results: 0, results: [] }),

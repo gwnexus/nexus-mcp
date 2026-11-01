@@ -150,7 +150,6 @@ identity and enforces project-scoped RBAC.
 | `NEXUS_PRIVATE_TOKEN` | yes | `nxs_pat_*` API token for identity resolution |
 | `NEXUS_MODEL` | no | Model identifier for session metadata enrichment |
 | `NEXUS_TOOLSTACK` | no | Toolstack identifier (e.g. `opencode`, `claude-code`) |
-| `NEXUS_SEC_OPENAI_API_KEY` | no | OpenAI API key for semantic search embeddings |
 
 ## Development
 
