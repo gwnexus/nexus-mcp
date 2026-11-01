@@ -2,7 +2,7 @@
 
 [![npm](https://img.shields.io/npm/v/@gwdn/nexus-mcp)](https://www.npmjs.com/package/@gwdn/nexus-mcp)
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
-[![Node.js 20+](https://img.shields.io/badge/node-20%2B-green.svg)](https://nodejs.org)
+[![Node.js 22+](https://img.shields.io/badge/node-22%2B-green.svg)](https://nodejs.org)
 
 MCP server for the [Gatewarden Nexus](https://nexus.gatewarden.eu) platform. Provides the mediation layer between local agent runtimes and the Nexus HTTP API via the [Model Context Protocol](https://modelcontextprotocol.io) (stdio transport).
 
