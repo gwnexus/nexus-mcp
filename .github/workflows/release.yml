@@ -18,10 +18,10 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           # trusted publishing needs Node >= 22.14 and npm >= 11.5.1
           node-version: 24
@@ -42,8 +42,14 @@ jobs:
       - name: Test
         run: npm test
 
+      - name: Security audit
+        run: npm audit --audit-level=high
+
       - name: Build
         run: npm run build
+
+      - name: Smoke test packed tarball
+        run: node scripts/smoke-test-tarball.mjs
 
       - name: Verify version matches tag
         run: |
@@ -58,7 +64,20 @@ jobs:
       - name: Publish to npm
         run: npm publish --access public
 
+      - name: Wait for registry availability
+        run: |
+          VERSION="$(node -p "require('./package.json').version")"
+          for i in $(seq 1 30); do
+            if [ "$(npm view "@gwdn/nexus-mcp@$VERSION" version 2>/dev/null)" = "$VERSION" ]; then
+              echo "Registry serves @gwdn/nexus-mcp@$VERSION"
+              exit 0
+            fi
+            sleep 10
+          done
+          echo "ERROR: @gwdn/nexus-mcp@$VERSION not visible on the registry after 5 minutes"
+          exit 1
+
       - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           generate_release_notes: true
