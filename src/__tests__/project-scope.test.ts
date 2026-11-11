@@ -6,6 +6,7 @@
  * - resolveProjectId falls back to NEXUS_PROJECT_ID when omitted
  * - resolveProjectId throws MissingProjectIdError when neither is available
  * - withProjectFallback only touches args that declare a project_id key
+ * - withOptionalProjectFallback falls back to NEXUS_PROJECT_ID but never throws
  */
 
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
@@ -13,6 +14,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import {
   MissingProjectIdError,
   resolveProjectId,
+  withOptionalProjectFallback,
   withProjectFallback,
 } from '../project-scope.js'
 
@@ -110,5 +112,40 @@ describe('withProjectFallback', () => {
     await expect(wrapped({ project_id: undefined })).rejects.toThrow(
       MissingProjectIdError,
     )
+  })
+})
+
+describe('withOptionalProjectFallback', () => {
+  const originalEnv = process.env.NEXUS_PROJECT_ID
+
+  afterEach(() => {
+    if (originalEnv === undefined) delete process.env.NEXUS_PROJECT_ID
+    else process.env.NEXUS_PROJECT_ID = originalEnv
+  })
+
+  const echo = async (args: unknown) => args
+
+  it('keeps an explicit project_id', async () => {
+    process.env.NEXUS_PROJECT_ID = ENV_PROJECT_ID
+    const wrapped = withOptionalProjectFallback(echo)
+    expect(await wrapped({ dispatch_id: 'd', project_id: EXPLICIT_PROJECT_ID })).toEqual({
+      dispatch_id: 'd',
+      project_id: EXPLICIT_PROJECT_ID,
+    })
+  })
+
+  it('falls back to NEXUS_PROJECT_ID when omitted', async () => {
+    process.env.NEXUS_PROJECT_ID = ENV_PROJECT_ID
+    const wrapped = withOptionalProjectFallback(echo)
+    expect(await wrapped({ dispatch_id: 'd' })).toEqual({
+      dispatch_id: 'd',
+      project_id: ENV_PROJECT_ID,
+    })
+  })
+
+  it('leaves project_id unset instead of throwing when no fallback exists', async () => {
+    delete process.env.NEXUS_PROJECT_ID
+    const wrapped = withOptionalProjectFallback(echo)
+    expect(await wrapped({ dispatch_id: 'd' })).toEqual({ dispatch_id: 'd' })
   })
 })

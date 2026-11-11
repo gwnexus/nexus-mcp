@@ -3,7 +3,8 @@
  *
  * dispatch_create, dispatch_reply, dispatch_inbox, dispatch_outbox,
  * dispatch_ack, dispatch_assign, dispatch_forward, dispatch_resolve,
- * dispatch_close, dispatch_sweep, dispatch_get, dispatch_related
+ * dispatch_close, dispatch_sweep, dispatch_get, dispatch_related,
+ * dispatch_events, dispatch_counts
  *
  * Legacy vl_* tools are thin wrappers at the bottom of this file.
  * All tools delegate to POST /api/mcp/dispatches.
@@ -22,6 +23,14 @@ const DISPATCH_STATUSES = ['open', 'acknowledged', 'in_progress', 'waiting_for_r
 
 const DISPATCH_MESSAGE_TYPES = ['reply', 'clarification', 'progress', 'resolution',
   'blocker', 'review_note', 'context', 'system_note'] as const
+
+// Author project for write tools: the hub records it as the message author's
+// project when it is the source or target of the Dispatch.
+const authorProjectId = z.string().uuid().optional()
+  .describe('Project UUID of the calling agent, recorded as the author project (falls back to NEXUS_PROJECT_ID env var when omitted)')
+
+const projectScope = z.enum(['project', 'linked']).optional()
+  .describe('project (default): only this project; linked: also projects linked to it (one hop) that the caller can read')
 
 function ok(data: unknown) {
   return { content: [{ type: 'text' as const, text: JSON.stringify(data, null, 2) }] }
@@ -82,6 +91,7 @@ export const dispatchReplySchema = {
     .describe('Type of message being appended'),
   status: z.enum(DISPATCH_STATUSES).optional()
     .describe('Optionally update the Dispatch status (must follow allowed transitions)'),
+  project_id: authorProjectId,
   agent_id: z.string().max(200).optional()
     .describe('Agent identifier of the replying agent'),
 }
@@ -97,7 +107,8 @@ export const dispatchInboxSchema = {
   project_id: z.string().uuid().optional()
     .describe('Project UUID — returns Dispatches addressed to this project (falls back to NEXUS_PROJECT_ID env var when omitted)'),
   scope: z.enum(['project', 'blocking', 'waiting_on_me', 'cross_project', 'watching']).optional()
-    .describe('Filter scope (default: project)'),
+    .describe('Filter scope (default: project). waiting_on_me covers incoming and outgoing Dispatches whose next step is on this project'),
+  project_scope: projectScope,
   status_filter: z.array(z.string()).optional()
     .describe('Filter by status (default: open, acknowledged, in_progress, waiting_for_requester, blocked, needs_review)'),
   include_closed: z.boolean().optional()
@@ -118,6 +129,7 @@ export async function dispatchInbox(args: any) {
 export const dispatchOutboxSchema = {
   project_id: z.string().uuid().optional()
     .describe('Project UUID — returns Dispatches created by this project (falls back to NEXUS_PROJECT_ID env var when omitted)'),
+  project_scope: projectScope,
   status_filter: z.array(z.string()).optional()
     .describe('Filter by status (default: all non-closed)'),
   limit: z.number().int().min(1).max(50).optional()
@@ -136,6 +148,7 @@ export async function dispatchOutbox(args: any) {
 export const dispatchAckSchema = {
   dispatch_id: z.string().uuid()
     .describe('Dispatch UUID to acknowledge (must be in open status)'),
+  project_id: authorProjectId,
   agent_id: z.string().max(200).optional()
     .describe('Agent identifier'),
 }
@@ -186,6 +199,7 @@ export const dispatchResolveSchema = {
     .describe('Dispatch UUID to mark as resolved'),
   resolution: z.string().max(10_000).optional()
     .describe('Resolution note — what was done, what was the outcome, any follow-up'),
+  project_id: authorProjectId,
   agent_id: z.string().max(200).optional()
     .describe('Agent identifier'),
 }
@@ -200,6 +214,7 @@ export async function dispatchResolve(args: any) {
 export const dispatchCloseSchema = {
   dispatch_id: z.string().uuid()
     .describe('Dispatch UUID to close (must be in resolved or needs_review status)'),
+  project_id: authorProjectId,
   agent_id: z.string().max(200).optional()
     .describe('Agent identifier'),
 }
@@ -265,6 +280,40 @@ export const dispatchRelatedSchema = {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function dispatchRelated(args: any) {
   return dispatch('dispatch_related', args)
+}
+
+// ── dispatch_events ───────────────────────────────────────────────────────────
+
+export const dispatchEventsSchema = {
+  project_id: z.string().uuid().optional()
+    .describe('Project UUID — returns the Dispatch event feed of this project (falls back to NEXUS_PROJECT_ID env var when omitted)'),
+  since: z.union([z.number().int().min(0), z.string().regex(/^\d+$/)]).optional()
+    .describe('Cursor: return events after this id (default: 0). Pass next_cursor of the previous response'),
+  limit: z.number().int().min(1).max(500).optional()
+    .describe('Max events (default: 100). Repeat with since = next_cursor while has_more is true'),
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function dispatchEvents(args: any) {
+  const result = await nexusPost('/api/mcp/dispatches', { action: 'dispatch_events', ...args })
+  if (!result.ok) return err(result.error)
+  return okSchema('nexus.dispatch-events.v1', result.data)
+}
+
+// ── dispatch_counts ───────────────────────────────────────────────────────────
+
+export const dispatchCountsSchema = {
+  project_id: z.string().uuid().optional()
+    .describe('Project UUID — returns Dispatch counts for this project (falls back to NEXUS_PROJECT_ID env var when omitted)'),
+  window_days: z.number().int().min(1).max(90).optional()
+    .describe('Window in days for resolved/closed counts (default: 7)'),
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function dispatchCounts(args: any) {
+  const result = await nexusPost('/api/mcp/dispatches', { action: 'dispatch_counts', ...args })
+  if (!result.ok) return err(result.error)
+  return okSchema('nexus.dispatch-counts.v1', result.data)
 }
 
 // ── Legacy vl_* compat wrappers ───────────────────────────────────────────────

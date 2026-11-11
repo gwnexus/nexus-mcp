@@ -77,7 +77,7 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 
 import { getIdentity, initIdentity } from './auth.js'
-import { withProjectFallback } from './project-scope.js'
+import { withOptionalProjectFallback, withProjectFallback } from './project-scope.js'
 import { SERVER_VERSION } from './version.js'
 
 // Layer 1: Knowledge Access
@@ -163,6 +163,10 @@ import {
   dispatchGetSchema,
   dispatchRelated,
   dispatchRelatedSchema,
+  dispatchEvents,
+  dispatchEventsSchema,
+  dispatchCounts,
+  dispatchCountsSchema,
 } from './tools/dispatches.js'
 import {
   listDocuments,
@@ -374,19 +378,19 @@ server.tool(
   'dispatch_reply',
   'Append a reply or timeline entry to an existing Dispatch. Optionally update the Dispatch status (enforces allowed transitions).',
   dispatchReplySchema,
-  withIdentity(dispatchReply),
+  withIdentity(withOptionalProjectFallback(dispatchReply)),
 )
 
 server.tool(
   'dispatch_inbox',
-  'List Dispatches addressed to the calling agent or project. Supports scope filters (blocking, waiting_on_me, cross_project) and status filters.',
+  'List Dispatches addressed to the calling agent or project. Supports scope filters (project, blocking, waiting_on_me, cross_project, watching) and status filters; waiting_on_me covers incoming and outgoing Dispatches whose next step is on this project. project_scope linked adds linked projects.',
   dispatchInboxSchema,
   withIdentity(withProjectFallback(dispatchInbox)),
 )
 
 server.tool(
   'dispatch_outbox',
-  'List Dispatches created by the calling agent or project. Ordered by recency.',
+  'List Dispatches created by the calling agent or project. Ordered by recency. project_scope linked adds linked projects.',
   dispatchOutboxSchema,
   withIdentity(withProjectFallback(dispatchOutbox)),
 )
@@ -395,7 +399,7 @@ server.tool(
   'dispatch_ack',
   'Acknowledge receipt of an open Dispatch. Transitions status from open to acknowledged and appends a system note.',
   dispatchAckSchema,
-  withIdentity(dispatchAck),
+  withIdentity(withOptionalProjectFallback(dispatchAck)),
 )
 
 server.tool(
@@ -416,14 +420,14 @@ server.tool(
   'dispatch_resolve',
   'Mark a Dispatch as resolved with an optional resolution note. Appends the resolution as a message and records resolved_at.',
   dispatchResolveSchema,
-  withIdentity(dispatchResolve),
+  withIdentity(withOptionalProjectFallback(dispatchResolve)),
 )
 
 server.tool(
   'dispatch_close',
   'Close a resolved Dispatch. Terminal state — no further transitions allowed after closing.',
   dispatchCloseSchema,
-  withIdentity(dispatchClose),
+  withIdentity(withOptionalProjectFallback(dispatchClose)),
 )
 
 server.tool(
@@ -445,6 +449,20 @@ server.tool(
   'Find structurally related Dispatches (same project pair, same type). Useful for loop prevention and duplicate detection before creating new Dispatches.',
   dispatchRelatedSchema,
   withIdentity(withProjectFallback(dispatchRelated)),
+)
+
+server.tool(
+  'dispatch_events',
+  'Read the Dispatch event feed of a project after a cursor: creations, status changes, assignments, reroutes and new messages (metadata only, fetch content with dispatch_get). Use next_cursor for the next call and repeat while has_more is true.',
+  dispatchEventsSchema,
+  withIdentity(withProjectFallback(dispatchEvents)),
+)
+
+server.tool(
+  'dispatch_counts',
+  'Return server-side Dispatch counts for a project: incoming and outgoing by status, blocking, waiting on us vs. waiting on the peer, per linked project, and resolved/closed within a window.',
+  dispatchCountsSchema,
+  withIdentity(withProjectFallback(dispatchCounts)),
 )
 
 server.tool(

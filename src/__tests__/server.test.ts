@@ -78,9 +78,9 @@ describe('MCP Server: withIdentity wrapper', () => {
 })
 
 describe('MCP Server: Schema exports', () => {
-  const EXPECTED_TOOL_COUNT = 62  // 48 original + 12 dispatch_* tools (ADR-0052) + 1 task_delete + 1 project_update
+  const EXPECTED_TOOL_COUNT = 64  // 48 original + 14 dispatch_* tools + 1 task_delete + 1 project_update
 
-  it('should register exactly 62 tools in server.ts', () => {
+  it('should register exactly 64 tools in server.ts', () => {
     // Static analysis: count server.tool( calls in server.ts as a regression guard.
     // If you add or remove a tool, update EXPECTED_TOOL_COUNT above.
     const serverSource = readFileSync(

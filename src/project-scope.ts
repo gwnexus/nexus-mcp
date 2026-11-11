@@ -55,3 +55,19 @@ export function withProjectFallback(handler: (args: any) => Promise<any>) {
     })
   }
 }
+
+/**
+ * Like withProjectFallback, but for tools where project_id is optional
+ * enrichment (e.g. the author project of a Dispatch message): falls back to
+ * NEXUS_PROJECT_ID when set and otherwise leaves project_id unset instead
+ * of failing.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function withOptionalProjectFallback(handler: (args: any) => Promise<any>) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return async (args: any) => {
+    const base = args && typeof args === 'object' ? args : {}
+    const projectId = base.project_id || process.env.NEXUS_PROJECT_ID
+    return handler(projectId ? { ...base, project_id: projectId } : base)
+  }
+}

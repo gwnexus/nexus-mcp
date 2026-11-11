@@ -1,6 +1,6 @@
 /**
  * Tests for Nexus Dispatch tools (ADR-0052).
- * Covers all 12 dispatch_* tools + legacy vl_* alias wrappers.
+ * Covers all 14 dispatch_* tools + legacy vl_* alias wrappers.
  */
 
 import { beforeEach, describe, expect, it, vi } from 'vitest'
@@ -567,6 +567,197 @@ describe('Nexus Dispatch: dispatch_related', () => {
     expect(parsed.action).toBe('dispatch_related')
     expect(parsed.related).toHaveLength(1)
     expect(parsed.related[0].status).toBe('closed')
+  })
+})
+
+// ---------------------------------------------------------------------------
+// dispatch_events
+// ---------------------------------------------------------------------------
+
+describe('Nexus Dispatch: dispatch_events', () => {
+  beforeEach(() => vi.restoreAllMocks())
+
+  it('should pass cursor and limit and return the event page', async () => {
+    vi.mocked(nexusPost).mockResolvedValue(
+      mockApiSuccess({
+        action: 'dispatch_events',
+        project_id: TEST_IDS.projectId,
+        since: 40,
+        next_cursor: 42,
+        has_more: false,
+        events: [
+          {
+            id: 41,
+            dispatch_id: TEST_IDS.dispatchId,
+            event_type: 'message_added',
+            message_type: 'reply',
+            direction: 'in',
+          },
+          {
+            id: 42,
+            dispatch_id: TEST_IDS.dispatchId,
+            event_type: 'status_changed',
+            status_from: 'open',
+            status_to: 'acknowledged',
+            direction: 'in',
+          },
+        ],
+      }),
+    )
+
+    const { dispatchEvents } = await import('../tools/dispatches.js')
+    const result = await dispatchEvents({ project_id: TEST_IDS.projectId, since: 40, limit: 2 })
+
+    expect(nexusPost).toHaveBeenCalledWith('/api/mcp/dispatches', {
+      action: 'dispatch_events',
+      project_id: TEST_IDS.projectId,
+      since: 40,
+      limit: 2,
+    })
+    expect(result.isError).toBeUndefined()
+    const parsed = parseToolResponse(result)
+    expect(parsed.schema).toBe('nexus.dispatch-events.v1')
+    expect(parsed.data.next_cursor).toBe(42)
+    expect(parsed.data.has_more).toBe(false)
+    expect(parsed.data.events.map((e: { id: number }) => e.id)).toEqual([41, 42])
+  })
+
+  it('should accept a numeric string cursor in the schema', async () => {
+    const { z } = await import('zod')
+    const { dispatchEventsSchema } = await import('../tools/dispatches.js')
+    const schema = z.object(dispatchEventsSchema)
+
+    expect(schema.safeParse({ since: '42' }).success).toBe(true)
+    expect(schema.safeParse({ since: 0 }).success).toBe(true)
+    expect(schema.safeParse({ since: -1 }).success).toBe(false)
+    expect(schema.safeParse({ since: 'abc' }).success).toBe(false)
+    expect(schema.safeParse({ limit: 500 }).success).toBe(true)
+    expect(schema.safeParse({ limit: 501 }).success).toBe(false)
+  })
+
+  it('should return error from the hub', async () => {
+    vi.mocked(nexusPost).mockResolvedValue(mockApiError('Invalid cursor', 400))
+
+    const { dispatchEvents } = await import('../tools/dispatches.js')
+    const result = await dispatchEvents({ project_id: TEST_IDS.projectId, since: '9' })
+
+    expect(result.isError).toBe(true)
+  })
+})
+
+// ---------------------------------------------------------------------------
+// dispatch_counts
+// ---------------------------------------------------------------------------
+
+describe('Nexus Dispatch: dispatch_counts', () => {
+  beforeEach(() => vi.restoreAllMocks())
+
+  it('should pass window_days and return the counts', async () => {
+    const side = {
+      by_status: { open: 1, acknowledged: 0, in_progress: 1, waiting_for_requester: 0, blocked: 0, needs_review: 0 },
+      total: 2,
+      blocking: 0,
+      waiting_on_us: 1,
+      waiting_on_peer: 0,
+    }
+    vi.mocked(nexusPost).mockResolvedValue(
+      mockApiSuccess({
+        action: 'dispatch_counts',
+        incoming: side,
+        outgoing: { ...side, waiting_on_us: 0, waiting_on_peer: 2 },
+        waiting_on_us: 1,
+        window: { since: '2026-11-04T00:00:00Z', resolved: 3, closed: 1 },
+        by_peer: [{ project_id: TEST_IDS.targetProjectId, in: 2, out: 2, waiting_on_us: 1 }],
+        window_days: 14,
+        truncated: false,
+      }),
+    )
+
+    const { dispatchCounts } = await import('../tools/dispatches.js')
+    const result = await dispatchCounts({ project_id: TEST_IDS.projectId, window_days: 14 })
+
+    expect(nexusPost).toHaveBeenCalledWith('/api/mcp/dispatches', {
+      action: 'dispatch_counts',
+      project_id: TEST_IDS.projectId,
+      window_days: 14,
+    })
+    const parsed = parseToolResponse(result)
+    expect(parsed.schema).toBe('nexus.dispatch-counts.v1')
+    expect(parsed.data.waiting_on_us).toBe(1)
+    expect(parsed.data.incoming.by_status.open).toBe(1)
+    expect(parsed.data.by_peer[0].project_id).toBe(TEST_IDS.targetProjectId)
+  })
+
+  it('should reject window_days outside 1..90 in the schema', async () => {
+    const { z } = await import('zod')
+    const { dispatchCountsSchema } = await import('../tools/dispatches.js')
+    const schema = z.object(dispatchCountsSchema)
+
+    expect(schema.safeParse({ window_days: 90 }).success).toBe(true)
+    expect(schema.safeParse({ window_days: 0 }).success).toBe(false)
+    expect(schema.safeParse({ window_days: 91 }).success).toBe(false)
+  })
+})
+
+// ---------------------------------------------------------------------------
+// project_scope and author project_id
+// ---------------------------------------------------------------------------
+
+describe('Nexus Dispatch: project_scope and author project_id', () => {
+  beforeEach(() => vi.restoreAllMocks())
+
+  it('dispatch_inbox and dispatch_outbox should pass project_scope through', async () => {
+    vi.mocked(nexusPost).mockResolvedValue(
+      mockApiSuccess({ project_scope: 'linked', projects: [TEST_IDS.projectId], dispatches: [] }),
+    )
+
+    const { dispatchInbox, dispatchOutbox } = await import('../tools/dispatches.js')
+    await dispatchInbox({ project_id: TEST_IDS.projectId, project_scope: 'linked' })
+    await dispatchOutbox({ project_id: TEST_IDS.projectId, project_scope: 'linked' })
+
+    expect(nexusPost).toHaveBeenCalledWith('/api/mcp/dispatches', {
+      action: 'dispatch_inbox',
+      project_id: TEST_IDS.projectId,
+      project_scope: 'linked',
+    })
+    expect(nexusPost).toHaveBeenCalledWith('/api/mcp/dispatches', {
+      action: 'dispatch_outbox',
+      project_id: TEST_IDS.projectId,
+      project_scope: 'linked',
+    })
+  })
+
+  it('write tools should declare an optional project_id', async () => {
+    const mod = await import('../tools/dispatches.js')
+    for (const schema of [
+      mod.dispatchReplySchema,
+      mod.dispatchAckSchema,
+      mod.dispatchResolveSchema,
+      mod.dispatchCloseSchema,
+    ]) {
+      expect(schema.project_id).toBeDefined()
+      expect(schema.project_id.safeParse(undefined).success).toBe(true)
+    }
+  })
+
+  it('dispatch_reply should send project_id as author project', async () => {
+    vi.mocked(nexusPost).mockResolvedValue(mockApiSuccess({ action: 'dispatch_reply' }))
+
+    const { dispatchReply } = await import('../tools/dispatches.js')
+    await dispatchReply({
+      dispatch_id: TEST_IDS.dispatchId,
+      body: 'Done.',
+      project_id: TEST_IDS.projectId,
+      agent_id: 'claude-code',
+    })
+
+    expect(nexusPost).toHaveBeenCalledWith('/api/mcp/dispatches', {
+      action: 'dispatch_reply',
+      dispatch_id: TEST_IDS.dispatchId,
+      body: 'Done.',
+      project_id: TEST_IDS.projectId,
+      agent_id: 'claude-code',
+    })
   })
 })
 
