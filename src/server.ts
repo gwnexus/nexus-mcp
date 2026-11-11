@@ -332,7 +332,7 @@ server.tool(
 
 server.tool(
   'vl_create',
-  'Create a new Nexus Dispatch for agent-to-agent or agent-to-human coordination (legacy alias for dispatch_create). Returns the new dispatch ID and status.',
+  'Create a new Nexus Dispatch for agent-to-agent or agent-to-human coordination (legacy alias for dispatch_create). Returns the new dispatch ID and status. from_project_id must be a project the caller can access.',
   createLetterSchema,
   withIdentity(withProjectFallback(createLetter)),
 )
@@ -369,7 +369,7 @@ server.tool(
 
 server.tool(
   'dispatch_create',
-  'Create a new routed Nexus Dispatch for agent-to-agent, agent-to-human, or cross-project coordination. Routing is derived from project context and actor resolution.',
+  'Create a new routed Nexus Dispatch for agent-to-agent, agent-to-human, or cross-project coordination. Routing is derived from project context and actor resolution. An unknown project id answers 404 PROJECT_NOT_FOUND.',
   dispatchCreateSchema,
   withIdentity(withProjectFallback(dispatchCreate)),
 )
@@ -495,7 +495,7 @@ server.tool(
 
 server.tool(
   'task_delete',
-  'Delete a task by UUID. Hard delete — irreversible. Use only for cleanup of erroneous or duplicate tasks.',
+  'Delete a task by UUID. Hard delete — irreversible. Use only for cleanup of erroneous or duplicate tasks. Requires project_admin or project_editor (403 otherwise).',
   deleteTaskSchema,
   withIdentity(deleteTask),
 )
@@ -530,7 +530,7 @@ server.tool(
 
 server.tool(
   'doc_delete',
-  'Delete an ingest item from a project knowledge base. This action is irreversible.',
+  'Delete an ingest item from a project knowledge base. This action is irreversible. Requires project_admin or project_editor (403 otherwise).',
   deleteDocumentSchema,
   withIdentity(deleteDocument),
 )
@@ -700,21 +700,21 @@ server.tool(
 
 server.tool(
   'adr_create',
-  'Create a new ADR (Architecture Decision Record) in draft state. Auto-assigns the next ADR number for the project. Optionally links to a superseded ADR.',
+  'Create a new ADR (Architecture Decision Record) in draft state. Auto-assigns the next ADR number for the project. Optionally links to a superseded ADR. Requires project_admin or project_editor (403 otherwise).',
   createAdrDraftSchema,
   withIdentity(withProjectFallback(createAdrDraft)),
 )
 
 server.tool(
   'adr_submit',
-  'Submit an ADR for review. Transitions an ADR from draft to under_review state. Only drafts can be submitted.',
+  'Submit an ADR for review. Transitions an ADR from draft to under_review state. Only drafts can be submitted. Requires project_admin or project_editor (403 otherwise).',
   submitAdrReviewSchema,
   withIdentity(submitAdrReview),
 )
 
 server.tool(
   'adr_decide',
-  'Accept or reject an ADR that is under review. If accepted and it supersedes another ADR, the superseded ADR is automatically marked. Optional rationale is appended to the ADR body.',
+  'Accept or reject an ADR that is under review. If accepted and it supersedes another ADR, the superseded ADR is automatically marked. Optional rationale is appended to the ADR body. Requires project_admin or project_reviewer (403 otherwise).',
   recordAdrDecisionSchema,
   withIdentity(recordAdrDecision),
 )
@@ -725,35 +725,35 @@ server.tool(
 
 server.tool(
   'rv_list',
-  'List reviews with optional filters by entity type and status. Returns reviews ordered by recency.',
+  'List reviews with optional filters by entity type and status. Returns reviews ordered by recency. Only reviews the caller is on, or whose skill or agent file the caller can read, are listed.',
   rvListSchema,
   withIdentity(rvList),
 )
 
 server.tool(
   'rv_get',
-  'Get a review by review ID, or by entity type and entity ID. Returns full review details including status and history.',
+  'Get a review by review ID, or by entity type and entity ID. Returns full review details including status and history. Reviews the caller cannot see answer 404.',
   rvGetSchema,
   withIdentity(rvGet),
 )
 
 server.tool(
   'rv_create',
-  'Create a new review for a skill or agent entity. Returns the new review ID and initial status.',
+  'Create a new review for a skill or agent entity. Returns the new review ID and initial status. Platform admin only (403 otherwise).',
   rvCreateSchema,
   withIdentity(rvCreate),
 )
 
 server.tool(
   'rv_decide',
-  'Transition a review state (submit, accept, reject, request_revision, resubmit, archive). Enforces valid state transitions. Optional rationale is recorded.',
+  'Transition a review state (submit, accept, reject, request_revision, resubmit, archive). Enforces valid state transitions. Optional rationale is recorded. Platform admin only (403 otherwise).',
   rvDecideSchema,
   withIdentity(rvDecide),
 )
 
 server.tool(
   'rv_comment',
-  'Add a comment to a review. Supports inline comments with optional line range. Comments are append-only and maintain a chronological audit trail.',
+  'Add a comment to a review. Supports inline comments with optional line range. Comments are append-only and maintain a chronological audit trail. Only on reviews the caller can see (404 otherwise).',
   rvCommentSchema,
   withIdentity(rvComment),
 )

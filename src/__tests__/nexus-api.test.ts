@@ -180,12 +180,29 @@ describe('nexus-api: response handling', () => {
     expect(res.error!.length).toBeLessThan(260)
   })
 
-  it('keeps the JSON error field of a 4xx response unchanged', async () => {
+  it('keeps the JSON error field of a 4xx response and adds the status', async () => {
     stubFetch(jsonResponse({ error: 'Project not found' }, { status: 404 }))
 
     const res = await nexusApi('/api/mcp/projects')
 
-    expect(res).toEqual({ ok: false, status: 404, data: null, error: 'Project not found' })
+    expect(res).toEqual({ ok: false, status: 404, data: null, error: 'Project not found (HTTP 404)' })
+  })
+
+  it('surfaces a 403 permission denial with the server message', async () => {
+    stubFetch(jsonResponse({ error: 'Platform admin required' }, { status: 403 }))
+
+    const res = await nexusApi('/api/mcp/reviews', { method: 'POST', body: {} })
+
+    expect(res.status).toBe(403)
+    expect(res.error).toBe('Platform admin required (HTTP 403)')
+  })
+
+  it('includes the JSON error code when present', async () => {
+    stubFetch(jsonResponse({ error: 'Project not found', code: 'PROJECT_NOT_FOUND' }, { status: 404 }))
+
+    const res = await nexusApi('/api/mcp/dispatches', { method: 'POST', body: {} })
+
+    expect(res.error).toBe('Project not found (HTTP 404, code: PROJECT_NOT_FOUND)')
   })
 
   it('appends the ref of a JSON 5xx error', async () => {
@@ -194,7 +211,7 @@ describe('nexus-api: response handling', () => {
     const res = await nexusApi('/api/mcp/search', { method: 'POST', body: {} })
 
     expect(res.status).toBe(503)
-    expect(res.error).toBe('Embedding failed (ref: err_abc123)')
+    expect(res.error).toBe('Embedding failed (HTTP 503, ref: err_abc123)')
   })
 
   it('reports invalid JSON with HTTP 200 as an error with the real status', async () => {

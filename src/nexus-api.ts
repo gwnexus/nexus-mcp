@@ -95,13 +95,18 @@ function bodySnippet(text: string): string {
 
 /**
  * Build the error message for a non-OK response. Prefers the JSON `error`
- * field (with `ref` when present), otherwise falls back to the HTTP status
- * line plus a sanitized body snippet.
+ * field, followed by the HTTP status and, when present, `code` and `ref`, so
+ * a permission denial (401/403) or a missing entity (404) is distinguishable
+ * from a server fault. Otherwise falls back to the HTTP status line plus a
+ * sanitized body snippet.
  */
 function httpErrorMessage(response: Response, text: string, json: unknown): string {
   const body = json && typeof json === 'object' ? (json as Record<string, unknown>) : null
   if (typeof body?.error === 'string') {
-    return typeof body.ref === 'string' ? `${body.error} (ref: ${body.ref})` : body.error
+    const details = [`HTTP ${response.status}`]
+    if (typeof body.code === 'string') details.push(`code: ${body.code}`)
+    if (typeof body.ref === 'string') details.push(`ref: ${body.ref}`)
+    return `${body.error} (${details.join(', ')})`
   }
   const statusLine = `HTTP ${response.status}${response.statusText ? ` ${response.statusText}` : ''}`
   const snippet = bodySnippet(text)

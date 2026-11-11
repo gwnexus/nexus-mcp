@@ -31,7 +31,7 @@ Or add to your agent's MCP configuration (OpenCode, Claude Code, Cursor, etc.):
 
 ## Architecture
 
-The server exposes 62 tools across 4 layers. All data access goes through the Nexus HTTP API -- the MCP server has no direct database access.
+The server exposes 64 tools across 4 layers. All data access goes through the Nexus HTTP API -- the MCP server has no direct database access.
 
 ```
 Agent Runtime (OpenCode, Claude, Cursor, ...)
@@ -59,12 +59,12 @@ Supabase (PostgreSQL + RLS)
 | `project_list` | List accessible projects |
 | `project_update` | Patch a project's readme and/or description (partial update). `description` is one short plain-text sentence (listing subtitle); long-form Markdown goes into `readme` |
 
-### Layer 2 -- Coordination (48 tools)
+### Layer 2 -- Coordination (50 tools)
 
 | Group | Tools |
 |-------|-------|
 | **Vault Letters** | `vl_create`, `vl_reply`, `vl_inbox`, `vl_outbox`, `vl_ack` |
-| **Dispatches** | `dispatch_create`, `dispatch_reply`, `dispatch_inbox`, `dispatch_outbox`, `dispatch_ack`, `dispatch_assign`, `dispatch_forward`, `dispatch_resolve`, `dispatch_close`, `dispatch_sweep`, `dispatch_get`, `dispatch_related` |
+| **Dispatches** | `dispatch_create`, `dispatch_reply`, `dispatch_inbox`, `dispatch_outbox`, `dispatch_ack`, `dispatch_assign`, `dispatch_forward`, `dispatch_resolve`, `dispatch_close`, `dispatch_sweep`, `dispatch_get`, `dispatch_related`, `dispatch_events`, `dispatch_counts` |
 | **Tasks** | `task_create`, `task_update`, `task_note`, `task_list`, `task_delete` |
 | **Documents** | `doc_ingest`, `doc_list`, `doc_classify`, `doc_update`, `doc_delete` |
 | **Sessions** | `session_create`, `session_append`, `session_close`, `session_list` |
@@ -121,19 +121,19 @@ saying what the skill does and when to use it. Agents pick skills by it.
 
 | Tool | Description |
 |------|-------------|
-| `adr_create` | Create a new ADR in draft status |
-| `adr_submit` | Submit a draft ADR for review |
-| `adr_decide` | Accept or reject an ADR under review |
+| `adr_create` | Create a new ADR in draft status (project_admin or project_editor) |
+| `adr_submit` | Submit a draft ADR for review (project_admin or project_editor) |
+| `adr_decide` | Accept or reject an ADR under review (project_admin or project_reviewer) |
 
 ### Layer 4 -- Reviews (5 tools)
 
 | Tool | Description |
 |------|-------------|
-| `rv_list` | List reviews with optional filters |
-| `rv_get` | Get review details by ID or entity |
-| `rv_create` | Create a new review for a skill or agent |
-| `rv_decide` | Transition a review state (submit, accept, reject, ...) |
-| `rv_comment` | Add a comment to a review |
+| `rv_list` | List reviews with optional filters (only reviews visible to the caller) |
+| `rv_get` | Get review details by ID or entity (404 if not visible) |
+| `rv_create` | Create a new review for a skill or agent (platform admin) |
+| `rv_decide` | Transition a review state (submit, accept, reject, ...) (platform admin) |
+| `rv_comment` | Add a comment to a review (404 if not visible) |
 
 ## Authentication
 
@@ -141,6 +141,12 @@ Identity is resolved once at startup via `GET /api/mcp/identity` using the
 `NEXUS_PRIVATE_TOKEN` as a Bearer token. All subsequent API calls use the same
 token for authentication. The Nexus backend resolves the token to a user
 identity and enforces project-scoped RBAC.
+
+Write tools check the caller's role: ADR tools, `task_delete` and `doc_delete`
+need a project role, `rv_create` and `rv_decide` need a platform admin. A denied
+call returns the server message with the HTTP status, for example
+`Platform admin required (HTTP 403)`, so agents can tell a permission answer
+from a server fault.
 
 ## Environment Variables
 
@@ -160,7 +166,7 @@ The maintainers' [Devbox](https://www.jetify.com/devbox) environment (`devbox.js
 ```bash
 npm install
 npm run typecheck   # TypeScript check
-npm test            # Run tests (164 unit + 34 E2E)
+npm test            # Run tests (230 unit + 34 E2E)
 npm run build       # Compile to dist/
 npm run dev         # Run via tsx (development)
 npm start           # Run compiled JS (production)
@@ -177,8 +183,8 @@ nexus-mcp/
 │   ├── machine-id.ts      # Machine identification for session metadata
 │   ├── project-scope.ts   # NEXUS_PROJECT_ID fallback for project-scoped tools
 │   ├── version.ts         # Package version for MCP serverInfo (read from package.json)
-│   ├── tools/             # 27 tool modules (62 tools total)
-│   └── __tests__/         # 17 test files (205 unit + 34 E2E)
+│   ├── tools/             # 27 tool modules (64 tools total)
+│   └── __tests__/         # 17 test files (230 unit + 34 E2E)
 ├── LICENSE                # Apache-2.0
 ├── SECURITY.md            # Security policy
 ├── CONTRIBUTING.md        # Contribution guidelines
