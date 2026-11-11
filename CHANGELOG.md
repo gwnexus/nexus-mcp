@@ -2,6 +2,13 @@
 
 All notable changes to `@gwdn/nexus-mcp` are documented in this file.
 
+## [0.11.1] - 2026-11-11
+
+### Changed
+
+- **Error messages carry the HTTP status** - When the API answers with a JSON `error`, the message now ends with the HTTP status and, when present, the `code` and `ref` fields, e.g. `Platform admin required (HTTP 403)` or `Project not found (HTTP 404, code: PROJECT_NOT_FOUND)`. A permission denial is no longer indistinguishable from a server fault.
+- **Required roles in tool descriptions** - The hub enforces stricter permissions on write tools. Descriptions now state them: `rv_create` and `rv_decide` (platform admin), `adr_create`, `adr_submit`, `task_delete` and `doc_delete` (project_admin or project_editor), `adr_decide` (project_admin or project_reviewer). `rv_list`, `rv_get` and `rv_comment` only cover reviews visible to the caller; `vl_create` requires an accessible `from_project_id`; `dispatch_create` answers 404 `PROJECT_NOT_FOUND` for an unknown project.
+
 ## [0.11.0] - 2026-11-11
 
 ### Breaking
