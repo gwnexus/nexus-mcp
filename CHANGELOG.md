@@ -2,6 +2,25 @@
 
 All notable changes to `@gwdn/nexus-mcp` are documented in this file.
 
+## [0.11.0] - 2026-11-11
+
+### Breaking
+
+- **Node.js 22 or later required** - Node.js 20 reached end of life in April 2026. `engines.node` is now `>=22`; CI tests Node 22 and 24.
+
+### Added
+
+- **`dispatch_events`** - Reads the Dispatch event feed of a project after a cursor (`since`, integer or numeric string, default 0; `limit` 1 to 500, default 100). Returns `next_cursor` and `has_more`; events carry metadata only (`created`, `status_changed`, `assigned`, `rerouted`, `message_added`, with `direction` in/out/away). Requires a hub with the Dispatch event feed.
+- **`dispatch_counts`** - Server-side Dispatch counts for a project: incoming and outgoing by status, blocking, waiting on us vs. waiting on the peer, per linked project, and resolved/closed within `window_days` (1 to 90, default 7).
+- **`dispatch_inbox` / `dispatch_outbox`: `project_scope`** - `project` (default) or `linked`, which adds the projects linked to the given project that the caller can read.
+- **Author project on Dispatch write tools** - `dispatch_reply`, `dispatch_ack`, `dispatch_resolve` and `dispatch_close` accept an optional `project_id` and fall back to `NEXUS_PROJECT_ID`. The hub records it as the author project of the message. Without either, the tools behave as before.
+
+### Changed
+
+- **`dispatch_inbox` description** - `waiting_on_me` covers incoming and outgoing Dispatches whose next step is on the project.
+- **Release pipeline** - The release workflow runs `npm audit --audit-level=high` and a smoke test of the packed tarball (install into an empty directory, MCP `initialize` + `tools/list` against a mock API) before publishing, and waits until the registry serves the new version. CI runs the same smoke test. A manual `workflow_dispatch` run performs all checks and `npm publish --dry-run` without publishing. GitHub Actions upgraded to `actions/checkout@v7`, `actions/setup-node@v7` and `softprops/action-gh-release@v3`.
+- **Dependabot** - Weekly grouped update PRs for npm dependencies and GitHub Actions.
+
 ## [0.10.19] - 2026-11-01
 
 ### Fixed
