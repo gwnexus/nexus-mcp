@@ -2,6 +2,12 @@
 
 All notable changes to `@gwdn/nexus-mcp` are documented in this file.
 
+## [0.12.0] - 2026-11-14
+
+### Added
+
+- **`adr_decide` accepts `decision: "superseded"`** - Closes an open ADR (`draft` or `under_review`) that a newer open ADR replaces. This confirms the replacement and is not a review outcome for the ADR's content. The response carries `new_state: "superseded"` and `superseded_by`; the hub answers 409 when no open ADR supersedes the target. Requires project_admin or project_reviewer and a hub with superseded-ADR closing (0.20.0 or later); older hubs reject the value.
+
 ## [0.11.1] - 2026-11-11
 
 ### Changed
