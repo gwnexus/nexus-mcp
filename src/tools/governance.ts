@@ -121,8 +121,10 @@ export async function submitAdrReview(args: SubmitAdrReviewArgs) {
 export const recordAdrDecisionSchema = {
   adr_id: z.string().uuid().describe('ADR UUID'),
   decision: z
-    .enum(['accepted', 'rejected'])
-    .describe('Decision outcome: accept or reject'),
+    .enum(['accepted', 'rejected', 'superseded'])
+    .describe(
+      'Decision outcome: accept or reject the ADR under review, or "superseded" to close an open ADR (draft or under review) that a newer open ADR replaces',
+    ),
   rationale: z
     .string()
     .max(10_000)

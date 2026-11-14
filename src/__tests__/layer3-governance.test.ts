@@ -187,6 +187,65 @@ describe('Layer 3: ADR Governance tools', () => {
       expect(parsed.superseded_adr).toBe(supersededId)
     })
 
+    it('should accept "superseded" in the decision schema', async () => {
+      const { z } = await import('zod')
+      const { recordAdrDecisionSchema } = await import('../tools/governance.js')
+      const schema = z.object(recordAdrDecisionSchema)
+      const adrId = '3f2b8c1e-4d5a-4b6c-8d7e-9f0a1b2c3d4e'
+      for (const decision of ['accepted', 'rejected', 'superseded']) {
+        expect(schema.safeParse({ adr_id: adrId, decision }).success).toBe(true)
+      }
+      expect(schema.safeParse({ adr_id: adrId, decision: 'deferred' }).success).toBe(false)
+    })
+
+    it('should forward decision "superseded" unchanged and return the hub response', async () => {
+      const supersededBy = '22222222-2222-2222-2222-222222222222'
+      vi.mocked(nexusPost).mockResolvedValue(
+        mockApiSuccess({
+          action: 'adr_decide',
+          adr_id: TEST_IDS.adrId,
+          title: 'Superseded draft',
+          decision: 'superseded',
+          new_state: 'superseded',
+          superseded_by: supersededBy,
+        }),
+      )
+
+      const { recordAdrDecision } = await import('../tools/governance.js')
+      const result = await recordAdrDecision({
+        adr_id: TEST_IDS.adrId,
+        decision: 'superseded',
+        rationale: 'Replaced by the newer draft',
+        user_id: TEST_IDS.userId,
+      })
+
+      expect(nexusPost).toHaveBeenCalledWith('/api/mcp/governance', {
+        action: 'adr_decide',
+        adr_id: TEST_IDS.adrId,
+        decision: 'superseded',
+        rationale: 'Replaced by the newer draft',
+      })
+      expect(result.isError).toBeUndefined()
+      const parsed = parseToolResponse(result)
+      expect(parsed.new_state).toBe('superseded')
+      expect(parsed.superseded_by).toBe(supersededBy)
+    })
+
+    it('should return error when no open ADR supersedes the target', async () => {
+      vi.mocked(nexusPost).mockResolvedValue(
+        mockApiError('No open ADR supersedes this ADR', 409),
+      )
+
+      const { recordAdrDecision } = await import('../tools/governance.js')
+      const result = await recordAdrDecision({
+        adr_id: TEST_IDS.adrId,
+        decision: 'superseded',
+        user_id: TEST_IDS.userId,
+      })
+
+      expect(result.isError).toBe(true)
+    })
+
     it('should return error for non-review ADR', async () => {
       vi.mocked(nexusPost).mockResolvedValue(
         mockApiError('ADR must be under review to record a decision', 409),
