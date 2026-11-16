@@ -2,6 +2,12 @@
 
 All notable changes to `@gwdn/nexus-mcp` are documented in this file.
 
+## [0.13.1] - 2026-11-16
+
+### Security
+
+- **Patched `hono` and `@hono/node-server`** - The lockfile now resolves `@modelcontextprotocol/sdk` 1.32.2, `hono` 4.13.18 and `@hono/node-server` 2.1.8, fixing GHSA-46wx-v44x-9hh2, GHSA-4m76-xfj5-7975, GHSA-3gg2-335m-rxc6, GHSA-4h7h-rv7c-7m2v, GHSA-h7mg-cq63-vhpq, GHSA-qv5m-9pm6-hqp3 and GHSA-jpvv-r467-5p4w. Both packages are transitive dependencies of the SDK's HTTP transports; this server uses the stdio transport only, so the affected code paths are not reachable at runtime.
+
 ## [0.13.0] - 2026-11-16
 
 ### Added
