@@ -57,7 +57,7 @@
  * Layer 3 - Governance:
  *   - adr_create: Create a new ADR draft
  *   - adr_submit: Submit an ADR for review
- *   - adr_decide: Accept or reject an ADR, or close a superseded open ADR
+ *   - adr_decide: Record a review decision on an ADR, deprecate or supersede it
  *
  * Layer 4 - Reviews:
  *   - rv_list: List reviews with optional filters
@@ -714,7 +714,7 @@ server.tool(
 
 server.tool(
   'adr_decide',
-  'Accept or reject an ADR that is under review. If accepted and it supersedes another ADR, the superseded ADR is automatically marked. Decision "superseded" confirms that a newer open ADR replaces this open ADR (draft or under review) and closes it; it is not a review outcome for the ADR\'s content (409 if no open ADR supersedes it). Optional rationale is appended to the ADR body. Requires project_admin or project_reviewer (403 otherwise).',
+  'Record a review decision on an ADR under review: accepted, accepted_with_conditions (conditions required, appended as "## Conditions", status stays accepted), changes_requested (rationale required, ADR goes back to draft), rejected (optional reason). deprecated retires an accepted ADR (rationale required). superseded closes an open ADR (draft or under review) that a newer open ADR replaces; it is not a review outcome for the ADR\'s content. If an accepted ADR supersedes another ADR, the superseded ADR is automatically marked. The hub answers 400 for missing conditions or rationale or a wrong state, 409 when the ADR was decided or edited concurrently. Every decision notifies the project team. Requires project_admin or project_reviewer (403 otherwise).',
   recordAdrDecisionSchema,
   withIdentity(recordAdrDecision),
 )

@@ -2,6 +2,12 @@
 
 All notable changes to `@gwdn/nexus-mcp` are documented in this file.
 
+## [Unreleased]
+
+### Added
+
+- **`adr_decide` review decisions** - `decision` now accepts `accepted`, `accepted_with_conditions`, `changes_requested`, `rejected`, `deprecated` and `superseded`. New optional fields: `conditions` (max 10000 characters; required for `accepted_with_conditions`, appended to the ADR as `## Conditions`, the status stays `accepted`) and `reason` for `rejected` (`alternative_preferred`, `insufficient_context`, `out_of_scope`, `duplicate`, `obsolete`). `changes_requested` (ADR goes back to `draft`) and `deprecated` (retires an accepted ADR) require `rationale`. The hub answers 400 for missing fields or a wrong state and 409 for a concurrent decision or edit. Requires a hub with the extended review decisions (0.21.0 or later).
+
 ## [0.12.0] - 2026-11-14
 
 ### Added

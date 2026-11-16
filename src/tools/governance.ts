@@ -121,21 +121,49 @@ export async function submitAdrReview(args: SubmitAdrReviewArgs) {
 export const recordAdrDecisionSchema = {
   adr_id: z.string().uuid().describe('ADR UUID'),
   decision: z
-    .enum(['accepted', 'rejected', 'superseded'])
+    .enum([
+      'accepted',
+      'accepted_with_conditions',
+      'changes_requested',
+      'rejected',
+      'deprecated',
+      'superseded',
+    ])
     .describe(
-      'Decision outcome: accept or reject the ADR under review, or "superseded" to close an open ADR (draft or under review) that a newer open ADR replaces',
+      'Review decision on an ADR under review: accepted, accepted_with_conditions (needs conditions), changes_requested (needs rationale; back to draft), rejected (optional reason). deprecated retires an accepted ADR (needs rationale). superseded closes an open ADR that a newer open ADR replaces.',
     ),
   rationale: z
     .string()
     .max(10_000)
     .optional()
-    .describe('Optional rationale for the decision'),
+    .describe(
+      'Rationale for the decision. Required for changes_requested (posted as a decision comment) and deprecated',
+    ),
+  conditions: z
+    .string()
+    .max(10_000)
+    .optional()
+    .describe(
+      'Conditions attached to the acceptance. Required for accepted_with_conditions; appended to the ADR as "## Conditions", the status stays accepted',
+    ),
+  reason: z
+    .enum([
+      'alternative_preferred',
+      'insufficient_context',
+      'out_of_scope',
+      'duplicate',
+      'obsolete',
+    ])
+    .optional()
+    .describe('Optional reason for a rejected decision'),
 }
 
 type RecordAdrDecisionArgs = {
   adr_id: string
   decision: string
   rationale?: string
+  conditions?: string
+  reason?: string
   user_id: string
 }
 
@@ -145,6 +173,8 @@ export async function recordAdrDecision(args: RecordAdrDecisionArgs) {
     adr_id: args.adr_id,
     decision: args.decision,
     rationale: args.rationale,
+    conditions: args.conditions,
+    reason: args.reason,
   })
 
   if (!result.ok) {

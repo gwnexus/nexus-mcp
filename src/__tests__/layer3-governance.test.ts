@@ -192,10 +192,130 @@ describe('Layer 3: ADR Governance tools', () => {
       const { recordAdrDecisionSchema } = await import('../tools/governance.js')
       const schema = z.object(recordAdrDecisionSchema)
       const adrId = '3f2b8c1e-4d5a-4b6c-8d7e-9f0a1b2c3d4e'
-      for (const decision of ['accepted', 'rejected', 'superseded']) {
+      for (const decision of [
+        'accepted',
+        'accepted_with_conditions',
+        'changes_requested',
+        'rejected',
+        'deprecated',
+        'superseded',
+      ]) {
         expect(schema.safeParse({ adr_id: adrId, decision }).success).toBe(true)
       }
       expect(schema.safeParse({ adr_id: adrId, decision: 'deferred' }).success).toBe(false)
+      expect(
+        schema.safeParse({ adr_id: adrId, decision: 'rejected', reason: 'duplicate' }).success,
+      ).toBe(true)
+      expect(
+        schema.safeParse({ adr_id: adrId, decision: 'rejected', reason: 'unclear' }).success,
+      ).toBe(false)
+      expect(
+        schema.safeParse({
+          adr_id: adrId,
+          decision: 'accepted_with_conditions',
+          conditions: 'x'.repeat(10_001),
+        }).success,
+      ).toBe(false)
+    })
+
+    it('should forward accepted_with_conditions with conditions', async () => {
+      vi.mocked(nexusPost).mockResolvedValue(
+        mockApiSuccess({
+          action: 'adr_decide',
+          adr_id: TEST_IDS.adrId,
+          title: 'Test ADR',
+          decision: 'accepted_with_conditions',
+          new_state: 'accepted',
+        }),
+      )
+
+      const { recordAdrDecision } = await import('../tools/governance.js')
+      const result = await recordAdrDecision({
+        adr_id: TEST_IDS.adrId,
+        decision: 'accepted_with_conditions',
+        conditions: 'Add a rollback plan before rollout',
+        user_id: TEST_IDS.userId,
+      })
+
+      expect(nexusPost).toHaveBeenCalledWith('/api/mcp/governance', {
+        action: 'adr_decide',
+        adr_id: TEST_IDS.adrId,
+        decision: 'accepted_with_conditions',
+        conditions: 'Add a rollback plan before rollout',
+      })
+      expect(result.isError).toBeUndefined()
+      expect(parseToolResponse(result).new_state).toBe('accepted')
+    })
+
+    it('should forward changes_requested with rationale', async () => {
+      vi.mocked(nexusPost).mockResolvedValue(
+        mockApiSuccess({
+          action: 'adr_decide',
+          adr_id: TEST_IDS.adrId,
+          title: 'Test ADR',
+          decision: 'changes_requested',
+          new_state: 'draft',
+        }),
+      )
+
+      const { recordAdrDecision } = await import('../tools/governance.js')
+      const result = await recordAdrDecision({
+        adr_id: TEST_IDS.adrId,
+        decision: 'changes_requested',
+        rationale: 'Consequences section is missing',
+        user_id: TEST_IDS.userId,
+      })
+
+      expect(nexusPost).toHaveBeenCalledWith('/api/mcp/governance', {
+        action: 'adr_decide',
+        adr_id: TEST_IDS.adrId,
+        decision: 'changes_requested',
+        rationale: 'Consequences section is missing',
+      })
+      expect(result.isError).toBeUndefined()
+      expect(parseToolResponse(result).new_state).toBe('draft')
+    })
+
+    it('should forward the reason of a rejected decision', async () => {
+      vi.mocked(nexusPost).mockResolvedValue(
+        mockApiSuccess({
+          action: 'adr_decide',
+          adr_id: TEST_IDS.adrId,
+          title: 'Test ADR',
+          decision: 'rejected',
+          new_state: 'rejected',
+        }),
+      )
+
+      const { recordAdrDecision } = await import('../tools/governance.js')
+      await recordAdrDecision({
+        adr_id: TEST_IDS.adrId,
+        decision: 'rejected',
+        reason: 'out_of_scope',
+        user_id: TEST_IDS.userId,
+      })
+
+      expect(nexusPost).toHaveBeenCalledWith('/api/mcp/governance', {
+        action: 'adr_decide',
+        adr_id: TEST_IDS.adrId,
+        decision: 'rejected',
+        reason: 'out_of_scope',
+      })
+    })
+
+    it('should return error when the hub rejects missing conditions', async () => {
+      vi.mocked(nexusPost).mockResolvedValue(
+        mockApiError('conditions are required for accepted_with_conditions', 400),
+      )
+
+      const { recordAdrDecision } = await import('../tools/governance.js')
+      const result = await recordAdrDecision({
+        adr_id: TEST_IDS.adrId,
+        decision: 'accepted_with_conditions',
+        user_id: TEST_IDS.userId,
+      })
+
+      expect(result.isError).toBe(true)
     })
 
     it('should forward decision "superseded" unchanged and return the hub response', async () => {

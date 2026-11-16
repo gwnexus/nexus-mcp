@@ -123,7 +123,7 @@ saying what the skill does and when to use it. Agents pick skills by it.
 |------|-------------|
 | `adr_create` | Create a new ADR in draft status (project_admin or project_editor) |
 | `adr_submit` | Submit a draft ADR for review (project_admin or project_editor) |
-| `adr_decide` | Accept or reject an ADR under review (project_admin or project_reviewer) |
+| `adr_decide` | Record a review decision on an ADR: `accepted`, `accepted_with_conditions` (with `conditions`), `changes_requested` (with `rationale`), `rejected` (optional `reason`: `alternative_preferred`, `insufficient_context`, `out_of_scope`, `duplicate`, `obsolete`); `deprecated` retires an accepted ADR, `superseded` closes an open ADR replaced by a newer one (project_admin or project_reviewer) |
 
 ### Layer 4 -- Reviews (5 tools)
 
