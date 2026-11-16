@@ -2,7 +2,7 @@
 
 All notable changes to `@gwdn/nexus-mcp` are documented in this file.
 
-## [Unreleased]
+## [0.13.0] - 2026-11-16
 
 ### Added
 
