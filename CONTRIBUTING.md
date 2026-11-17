@@ -11,7 +11,7 @@ Thank you for your interest in contributing to the Nexus MCP server.
 
 ## Requirements
 
-- Node.js >= 20
+- Node.js >= 22
 - TypeScript >= 5.8
 
 ## Development Workflow

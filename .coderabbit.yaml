@@ -1,0 +1,232 @@
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+#
+# Review configuration for @gwdn/nexus-mcp: a stdio MCP server (TypeScript,
+# Node >= 22, ESM) that exposes tools backed by the /api/mcp/* HTTP API.
+
+language: en-US
+tone_instructions: >-
+  Be concise and technical. Prioritise correctness, tool contract
+  stability, token safety and stdio protocol hygiene over style. Skip
+  praise and nitpicks the CI already catches.
+early_access: false
+
+reviews:
+  profile: assertive
+  request_changes_workflow: false
+  high_level_summary: true
+  review_status: true
+  commit_status: true
+  collapse_walkthrough: true
+  changed_files_summary: true
+  sequence_diagrams: false
+  assess_linked_issues: true
+  related_issues: true
+  related_prs: true
+  suggested_labels: true
+  auto_apply_labels: false
+  suggested_reviewers: false
+  poem: false
+  abort_on_close: true
+
+  auto_review:
+    enabled: true
+    auto_incremental_review: true
+    drafts: false
+    base_branches:
+      - main
+      - "staging/release-.*"
+    ignore_title_keywords:
+      - WIP
+      - "[skip review]"
+
+  finishing_touches:
+    docstrings:
+      enabled: false
+    unit_tests:
+      enabled: true
+
+  pre_merge_checks:
+    docstrings:
+      mode: "off"
+    issue_assessment:
+      mode: "off"
+    title:
+      mode: warning
+      requirements: >-
+        Conventional Commits format `type(scope): subject`, below 72
+        characters, no emojis. Types in use: feat, fix, docs, chore, ci,
+        test, refactor, perf, release. Typical scopes: mcp, api, deps,
+        changelog, ci.
+    description:
+      mode: warning
+    custom_checks:
+      - name: Changelog entry
+        mode: warning
+        instructions: >-
+          Pass if the PR does not change user-visible behaviour, or if
+          CHANGELOG.md gains an entry for it. User-visible means: a tool is
+          added, removed or renamed; a tool's Zod schema, enum values,
+          defaults or description change; error messages or HTTP error
+          handling change; environment variables change; the minimum Node
+          version or a runtime dependency changes. Dependency-only PRs from
+          Dependabot pass without an entry unless they fix a security
+          advisory.
+      - name: Tool contract in sync
+        mode: warning
+        instructions: >-
+          Pass if every tool added or changed in src/tools/ is also
+          registered (or updated) in src/server.ts, listed in the README
+          tool table with an accurate description, and covered by a test in
+          src/__tests__/. Fail if a schema field, enum value or tool name
+          changes in one of these places but not the others.
+      - name: No secrets or attribution
+        mode: error
+        instructions: >-
+          Fail if the diff, commit messages or PR description contain
+          credentials, private tokens (for example values matching
+          nxs_pat_*), private keys or real API URLs with embedded secrets.
+          Also fail if commit messages or the PR description carry
+          generator or tool attribution such as Co-Authored-By trailers for
+          tools or "generated with" notes.
+
+  path_filters:
+    - "!dist/**"
+    - "!**/*.map"
+    - "!**/*.tsbuildinfo"
+    - "!coverage/**"
+
+  path_instructions:
+    - path: "src/tools/**/*.ts"
+      instructions: |
+        Each file exports a Zod (v4) schema and a handler that forwards the
+        validated input to an /api/mcp/* endpoint via src/nexus-api.ts.
+        - The server is a thin mediation layer: business rules, permission
+          checks and state transitions are enforced by the HTTP API. Flag
+          client-side logic that duplicates or contradicts them; fields
+          must be forwarded unchanged unless the PR explains why.
+        - Enum values and field names mirror the API contract. Removing or
+          renaming one is a breaking change for agents and needs a
+          CHANGELOG entry and a minor version bump at least.
+        - Tool and field descriptions are the contract agents read. Check
+          that they state required combinations (for example a field that
+          is only required for one enum value) and match the actual
+          behaviour.
+        - project_id is optional and falls back to NEXUS_PROJECT_ID via
+          withProjectFallback (src/project-scope.ts). Flag tools that
+          require it again or bypass the fallback.
+        - Errors must keep the HTTP status and the API message so agents
+          can react to 400/403/409. Never swallow errors silently.
+        - UUIDs must be validated with z.string().uuid() (or the shared
+          helpers); string lengths need sensible max() limits.
+    - path: "src/server.ts"
+      instructions: |
+        Registers every tool on an McpServer with the stdio transport.
+        - Nothing may write to stdout except the MCP transport: flag any
+          console.log, console.info or process.stdout.write, since it
+          corrupts the JSON-RPC stream. Diagnostics go to stderr.
+        - Every tool from src/tools/ must be registered exactly once, with
+          the project fallback where the tool is project-scoped.
+        - Deprecated aliases (vl_*) must stay functional until a release
+          explicitly removes them.
+    - path: "src/{nexus-api,auth,machine-id,project-scope}.ts"
+      instructions: |
+        Security-sensitive core: HTTP client, token handling and identity.
+        - NEXUS_PRIVATE_TOKEN must never appear in error messages, logs,
+          thrown objects or request URLs; it is sent only as a Bearer
+          header.
+        - Check fetch error handling: non-2xx responses must surface the
+          status and API error text; network errors must not leak headers.
+        - Optional enrichment (machine id, hostname, model, toolstack) must
+          never block startup or a request.
+        - Flag new outbound hosts, telemetry or file system writes.
+    - path: "src/__tests__/**/*.ts"
+      instructions: |
+        Vitest suites with a mocked fetch (see helpers.ts and setup.ts).
+        e2e-integration.test.ts runs only with NEXUS_E2E=1 against a real
+        backend and must stay skipped by default; it must never contain
+        real tokens or project data.
+        - New or changed tool behaviour needs a test for the forwarded
+          payload and for at least one error path (400/403/409).
+        - Do not request coverage for trivial pass-through code.
+    - path: "package.json"
+      instructions: |
+        Published to npm as @gwdn/nexus-mcp via trusted publishing.
+        - The version must only change in release commits; the release
+          workflow fails when the tag and package.json disagree.
+        - engines.node is >=22; flag changes that break Node 22 or 24
+          (the CI matrix).
+        - The "files" list controls the published tarball; flag additions
+          that would ship sources, tests or local config.
+        - Keep runtime dependencies minimal; question every new one.
+    - path: "CHANGELOG.md"
+      instructions: |
+        Keep a Changelog style with `## [x.y.z] - YYYY-MM-DD` headings and
+        Added/Changed/Fixed/Security sections. Entries are bold lead-ins
+        followed by a precise technical description, including minimum API
+        versions where a feature depends on them. English only.
+    - path: "README.md"
+      instructions: |
+        The tool table must match the registered tools and their schemas.
+        Check environment variable names, default values and the minimum
+        Node version against the code. English only.
+    - path: ".github/workflows/**"
+      instructions: |
+        - CI runs typecheck, tests, npm audit, build and a packed tarball
+          smoke test on Node 22 and 24; keep these steps intact.
+        - The release workflow publishes with npm trusted publishing
+          (OIDC, id-token: write). Flag any reintroduction of an NPM_TOKEN
+          secret, broader permissions than needed, or publish steps that
+          run outside tag pushes.
+        - Prefer pinned major versions for actions; flag unpinned refs
+          such as @main.
+    - path: "{scripts/**,.githooks/**}"
+      instructions: |
+        Shell and Node helper scripts. Shell scripts use bash with
+        `set -euo pipefail` and must fail closed (the pre-commit gitleaks
+        hook blocks the commit on scanner errors). Quote all variables.
+    - path: ".gitleaks.toml"
+      instructions: |
+        Allowlist changes weaken secret scanning. Every new allowlist entry
+        needs a narrow path or regex and a reason; scripts/check-gitleaks-config.sh
+        must still detect a synthetic token.
+
+  tools:
+    gitleaks:
+      enabled: true
+    actionlint:
+      enabled: true
+    shellcheck:
+      enabled: true
+    yamllint:
+      enabled: true
+    markdownlint:
+      enabled: true
+    osvScanner:
+      enabled: true
+    github-checks:
+      enabled: true
+    biome:
+      enabled: false
+    eslint:
+      enabled: false
+    languagetool:
+      enabled: false
+
+chat:
+  auto_reply: true
+
+knowledge_base:
+  opt_out: false
+  web_search:
+    enabled: true
+  code_guidelines:
+    enabled: true
+    filePatterns:
+      - CONTRIBUTING.md
+      - SECURITY.md
+  learnings:
+    scope: auto
+  issues:
+    scope: auto
+  pull_requests:
+    scope: auto
