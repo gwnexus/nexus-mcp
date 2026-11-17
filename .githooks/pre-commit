@@ -6,14 +6,13 @@
 # Fails closed: scanner errors (or a missing gitleaks binary) also block
 # the commit rather than silently skipping the scan.
 #
-# Wired automatically on 'devbox shell' via scripts/devbox/dbx_init.sh
-# (git config core.hooksPath .githooks). Manual setup, if needed:
+# Enable once per clone:
 #   git config core.hooksPath .githooks
 
 set -euo pipefail
 
 if ! command -v gitleaks &>/dev/null; then
-  echo "[pre-commit] ERROR: gitleaks not found. Install via: devbox shell (or brew install gitleaks)"
+  echo "[pre-commit] ERROR: gitleaks not found. Install via: brew install gitleaks (or see https://github.com/gitleaks/gitleaks)"
   echo "             Commits are blocked until gitleaks is available."
   echo "             To bypass (use with caution): git commit --no-verify"
   exit 1

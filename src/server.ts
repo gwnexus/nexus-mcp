@@ -365,7 +365,7 @@ server.tool(
   withIdentity(acknowledgeLetter),
 )
 
-// ── Nexus Dispatch tools (dispatch_*) — ADR-0052 ──────────────────────────────
+// ── Nexus Dispatch tools (dispatch_*) ──────────────────────────────
 
 server.tool(
   'dispatch_create',

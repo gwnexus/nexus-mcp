@@ -1,5 +1,5 @@
 /**
- * Nexus Dispatch Tools — ADR-0052
+ * Nexus Dispatch Tools
  *
  * dispatch_create, dispatch_reply, dispatch_inbox, dispatch_outbox,
  * dispatch_ack, dispatch_assign, dispatch_forward, dispatch_resolve,

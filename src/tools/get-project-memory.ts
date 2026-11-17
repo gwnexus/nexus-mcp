@@ -5,7 +5,7 @@
  * Includes ADRs, active tasks, recent sessions, open letters, etc.
  * Delegates to POST /api/mcp/memory.
  *
- * ADR-0001 spec: kb_memory(project_id, include[], depth)
+ * Spec: kb_memory(project_id, include[], depth)
  */
 
 import { z } from 'zod'

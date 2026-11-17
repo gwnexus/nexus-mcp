@@ -151,7 +151,7 @@ describe('Layer 1: kb_memory', () => {
         categories_included: ['adrs', 'active_tasks'],
         memory: {
           project: { id: TEST_IDS.projectId, name: 'Test Project' },
-          adrs: [{ id: TEST_IDS.adrId, title: 'ADR-001', status: 'accepted' }],
+          adrs: [{ id: TEST_IDS.adrId, title: 'Use PostgreSQL', status: 'accepted' }],
           active_tasks: [{ id: TEST_IDS.taskId, title: 'Open task', status: 'open' }],
         },
       }),
@@ -241,7 +241,7 @@ describe('Layer 1: kb_get', () => {
         entity_type: 'decision',
         entity_id: TEST_IDS.adrId,
         format: 'markdown',
-        content: '# ADR-001\n\nSome content',
+        content: '# Use PostgreSQL\n\nSome content',
       }),
     )
 
@@ -253,7 +253,7 @@ describe('Layer 1: kb_get', () => {
     })
 
     expect(result.isError).toBeUndefined()
-    expect(result.content[0].text).toContain('# ADR-001')
+    expect(result.content[0].text).toContain('# Use PostgreSQL')
   })
 
   it('should return error for not found entity', async () => {

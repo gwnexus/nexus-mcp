@@ -2,7 +2,7 @@
  * pd_list + pd_get + pd_create + pd_update + pd_delete + pd_toggle + directive_export
  *
  * Project Directives management tools for the Nexus platform.
- * Directives are short binding rules (ADR-0125): a platform catalog (mandatory,
+ * Directives are short binding rules: a platform catalog (mandatory,
  * flag, default, optional rules) plus project rules. Each rule is one imperative
  * sentence; the optional rationale is stored for humans and never sent to agents.
  * The backend still accepts the legacy title/body/priority fields as aliases.
@@ -106,7 +106,7 @@ export async function pdGet(args: PdGetArgs) {
 }
 
 // ---------------------------------------------------------------------------
-// Directive rule fields (ADR-0125)
+// Directive rule fields
 // ---------------------------------------------------------------------------
 
 export const DIRECTIVE_LEVELS = ['must', 'should'] as const

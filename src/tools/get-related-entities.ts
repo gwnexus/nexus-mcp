@@ -4,7 +4,7 @@
  * Returns graph-neighbor entities related to a given entity.
  * Delegates to POST /api/mcp/related.
  *
- * ADR-0001 spec: kb_related(entity_type, entity_id, relation_types[], limit)
+ * Spec: kb_related(entity_type, entity_id, relation_types[], limit)
  */
 
 import { z } from 'zod'

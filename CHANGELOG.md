@@ -68,32 +68,32 @@ All notable changes to `@gwdn/nexus-mcp` are documented in this file.
 
 ### Security
 
-- **npm trusted publishing (OIDC)** - The release workflow publishes with a short-lived OIDC token instead of the long-lived `NPM_TOKEN` secret (task cc96d858). The release job runs on a GitHub-hosted runner (`ubuntu-latest`, required by npm trusted publishing) with Node 24 and npm 11. Packages now carry an npm provenance attestation.
+- **npm trusted publishing (OIDC)** - The release workflow publishes with a short-lived OIDC token instead of the long-lived `NPM_TOKEN` secret. The release job runs on a GitHub-hosted runner (`ubuntu-latest`, required by npm trusted publishing) with Node 24 and npm 11. Packages now carry an npm provenance attestation.
 
 ## [0.10.17] - 2026-10-12
 
 ### Added
 
-- **`session_create` / `session_list`: `release_line`** - Optional `release_line` (format `X.Y.Z`, e.g. `0.17.0`). `session_create` passes it through; when omitted, the hub derives it from a `staging/release-X.Y.Z` title. `session_list` filters open sessions by exact match. Both responses include `release_line`. Requires nexus-hub 0.17.0 (migration 0264); older hubs ignore the parameter (Dispatch #e2cef7a9).
+- **`session_create` / `session_list`: `release_line`** - Optional `release_line` (format `X.Y.Z`, e.g. `0.17.0`). `session_create` passes it through; when omitted, the hub derives it from a `staging/release-X.Y.Z` title. `session_list` filters open sessions by exact match. Both responses include `release_line`. Requires nexus-hub 0.17.0 (migration 0264); older hubs ignore the parameter.
 
 ### Security
 
-- **gitleaks ruleset was empty** - `.gitleaks.toml` defined only an allowlist without `[extend] useDefault = true`, so the pre-commit hook ran with zero rules and never blocked a commit. The config now extends the built-in rules; a full history scan (73 commits) found no leaks. New CI job `gitleaks-config` runs `scripts/check-gitleaks-config.sh`, which expects exactly one finding for a synthetic GitHub PAT. `.nexus/credentials.toml` is now gitignored (Dispatch #71e4128b).
+- **gitleaks ruleset was empty** - `.gitleaks.toml` defined only an allowlist without `[extend] useDefault = true`, so the pre-commit hook ran with zero rules and never blocked a commit. The config now extends the built-in rules; a full history scan (73 commits) found no leaks. New CI job `gitleaks-config` runs `scripts/check-gitleaks-config.sh`, which expects exactly one finding for a synthetic GitHub PAT. `.nexus/credentials.toml` is now gitignored.
 
 ## [0.10.16] - 2026-10-08
 
 ### Added
 
-- **`pd_create` / `pd_update`: short directive rules (ADR-0125)** - New fields `rule` (one imperative sentence, max 240 chars), `rationale` (max 2000 chars, never sent to agents), `level` (`must` | `should`), `category` (enum `commits`, `language`, `docs`, `security`, `workflow`, `operations`, `communication`) and `sort_order` (integer). Aligns with nexus-app migrations 0258/0259 (Dispatch #8761ec10).
+- **`pd_create` / `pd_update`: short directive rules** - New fields `rule` (one imperative sentence, max 240 chars), `rationale` (max 2000 chars, never sent to agents), `level` (`must` | `should`), `category` (enum `commits`, `language`, `docs`, `security`, `workflow`, `operations`, `communication`) and `sort_order` (integer). Aligns with nexus-app migrations 0258/0259.
 - **`pd_create`: catalog references** - `template_slug` / `template_id` add a default or optional rule from the platform directive catalog. The tool rejects a catalog reference combined with rule fields, and a call with neither a rule nor a catalog reference, before contacting the backend.
-- **`sk_create` / `sk_update`: `invocation`** - Optional enum `model` | `user`; `user` is rendered as `disable-model-invocation` for Claude Code. Aligns with nexus-app migration 0257 (Dispatch #21f19e68).
+- **`sk_create` / `sk_update`: `invocation`** - Optional enum `model` | `user`; `user` is rendered as `disable-model-invocation` for Claude Code. Aligns with nexus-app migration 0257.
 
 ### Changed
 
-- **`sk_create`: `description` is required** - 1 to 500 characters, not blank; `sk_update` rejects a blank description. Matches the backend constraint `skills_description_required` (ADR-0124, Dispatch #21f19e68).
+- **`sk_create`: `description` is required** - 1 to 500 characters, not blank; `sk_update` rejects a blank description. Matches the backend constraint `skills_description_required`.
 - **`pd_create` / `pd_update`: legacy fields deprecated** - `title`, `body` and `priority` stay accepted as aliases for `rule`, `rationale` and `level`, but are marked deprecated. `pd_create` no longer sends the default category `general` (rejected by the backend now) or the default priority `medium`.
 - **`pd_list` description** - Documents the effective list (`source`: `mandatory` | `flag` | `template` | `project`) and that mandatory and flag rules cannot be edited with `pd_update`.
-- **`project_update` description** - `description` is one short plain-text sentence (listing subtitle); long-form Markdown about the project goes into `readme`, which agents see at depth standard (Dispatch #8761ec10).
+- **`project_update` description** - `description` is one short plain-text sentence (listing subtitle); long-form Markdown about the project goes into `readme`, which agents see at depth standard.
 
 ### Fixed
 
@@ -108,14 +108,14 @@ All notable changes to `@gwdn/nexus-mcp` are documented in this file.
 
 ### Added
 
-- **`task_create` / `task_update`: `category` parameter** - Optional `category` field (enum `coderabbit_fix`) forwarded to the nexus-hub task API. `task_update` accepts `null` to clear it. Aligns with nexus-hub migration 0178 (Dispatch #55bc7397).
-- **`doc_classify`: `coderabbit_review` classification** - New classification value for CodeRabbit review triage documents. Aligns with nexus-hub migration 0177 (Dispatch #55bc7397).
+- **`task_create` / `task_update`: `category` parameter** - Optional `category` field (enum `coderabbit_fix`) forwarded to the nexus-hub task API. `task_update` accepts `null` to clear it. Aligns with nexus-hub migration 0178.
+- **`doc_classify`: `coderabbit_review` classification** - New classification value for CodeRabbit review triage documents. Aligns with nexus-hub migration 0177.
 
 ## [0.10.14] - 2026-09-20
 
 ### Fixed
 
-- **`project_id` fallback when the key is absent** - `withProjectFallback` previously resolved `NEXUS_PROJECT_ID` only when the caller's args contained a `project_id` key (even as `undefined`). MCP clients usually omit optional parameters entirely, so the fallback did not fire in the most common case. The resolved `project_id` is now always injected for wrapped tools (Dispatch #5f5aa27c).
+- **`project_id` fallback when the key is absent** - `withProjectFallback` previously resolved `NEXUS_PROJECT_ID` only when the caller's args contained a `project_id` key (even as `undefined`). MCP clients usually omit optional parameters entirely, so the fallback did not fire in the most common case. The resolved `project_id` is now always injected for wrapped tools.
 
 ### Security
 
@@ -131,13 +131,13 @@ All notable changes to `@gwdn/nexus-mcp` are documented in this file.
 
 ### Fixed
 
-- **Server-side fallback to `NEXUS_PROJECT_ID`** - MCP tools that accept an optional `project_id` argument now fall back to the `NEXUS_PROJECT_ID` environment variable when the caller omits it, instead of requiring an explicit and correct value on every call. Applies to `kb_search`, `kb_memory`, `project_update`, `vl_create`/`vl_inbox`/`vl_outbox`, `dispatch_create`/`dispatch_inbox`/`dispatch_outbox`/`dispatch_sweep`/`dispatch_related`, `task_create`/`task_list`, `doc_ingest`/`doc_list`, `session_create`/`session_list`, `sk_assign`/`sk_unassign`/`sk_export`, `pd_list`/`pd_create`, `directive_export`, and `adr_create`. If neither an explicit `project_id` argument nor `NEXUS_PROJECT_ID` is available, the tool now fails loudly with a `MissingProjectIdError` instead of silently proceeding unscoped. This is defense-in-depth against agents silently writing sessions/dispatches/decisions to the wrong project (Dispatch #5f5aa27c).
+- **Server-side fallback to `NEXUS_PROJECT_ID`** - MCP tools that accept an optional `project_id` argument now fall back to the `NEXUS_PROJECT_ID` environment variable when the caller omits it, instead of requiring an explicit and correct value on every call. Applies to `kb_search`, `kb_memory`, `project_update`, `vl_create`/`vl_inbox`/`vl_outbox`, `dispatch_create`/`dispatch_inbox`/`dispatch_outbox`/`dispatch_sweep`/`dispatch_related`, `task_create`/`task_list`, `doc_ingest`/`doc_list`, `session_create`/`session_list`, `sk_assign`/`sk_unassign`/`sk_export`, `pd_list`/`pd_create`, `directive_export`, and `adr_create`. If neither an explicit `project_id` argument nor `NEXUS_PROJECT_ID` is available, the tool now fails loudly with a `MissingProjectIdError` instead of silently proceeding unscoped. This is defense-in-depth against agents silently writing sessions/dispatches/decisions to the wrong project.
 
 ## [0.10.11] - 2026-08-22
 
 ### Added
 
-- **`doc_classify`: `offer`, `sow`, `contract` classifications** - Three new classification values added to the `doc_classify` tool schema for customer-facing documents. `offer` is for proposals/offers, `sow` for statements of work, `contract` for general contract documents (NDAs, framework agreements). Aligns with nexus-app wizard upload pipeline changes (Dispatch #899ab533).
+- **`doc_classify`: `offer`, `sow`, `contract` classifications** - Three new classification values added to the `doc_classify` tool schema for customer-facing documents. `offer` is for proposals/offers, `sow` for statements of work, `contract` for general contract documents (NDAs, framework agreements). Aligns with nexus-app wizard upload pipeline changes.
 - **`kb_memory`: `customer_docs` include category** - New include category for the `kb_memory` tool that returns offer, SOW, and contract classified ingest items. Enables agents to load customer-facing document context at session start via `include: ['customer_docs']`.
 
 ---
@@ -209,7 +209,7 @@ All notable changes to `@gwdn/nexus-mcp` are documented in this file.
 ### Added
 
 - **`doc_ingest`: `parent_id` parameter** — Optional UUID parameter to create child ingest items linked to a parent. Used to attach mitigation reports to scan reports (max 1 level of nesting). Depth validation and same-project constraints are enforced by the hub API and DB triggers; the MCP layer passes the value through without additional validation.
-- **`doc_classify`: `mitigation_report` classification** — New classification value accepted by the hub API (migration 0142 / ADR-0065). Allows classifying child documents created via `parent_id` as mitigation reports.
+- **`doc_classify`: `mitigation_report` classification** — New classification value accepted by the hub API (migration 0142). Allows classifying child documents created via `parent_id` as mitigation reports.
 
 ### Changed
 
@@ -276,7 +276,7 @@ All notable changes to `@gwdn/nexus-mcp` are documented in this file.
 
 ### Added
 
-- **Nexus Dispatch tools (12 new `dispatch_*` tools)** — ADR-0052
+- **Nexus Dispatch tools (12 new `dispatch_*` tools)**
   - `dispatch_create` — Create a routed Dispatch with actor resolution and project-link gate
   - `dispatch_reply` — Append reply or timeline entry with optional status transition
   - `dispatch_inbox` — List Dispatches addressed to a project (scope: blocking/waiting_on_me/cross_project)

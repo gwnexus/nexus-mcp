@@ -1051,7 +1051,7 @@ describe('Layer 2: Skill tools', () => {
     })
   })
 
-  describe('skCreate / skUpdate schemas (ADR-0124)', () => {
+  describe('skCreate / skUpdate schemas', () => {
     it('requires a non-blank description of at most 500 characters on sk_create', async () => {
       const { skCreateSchema } = await import('../tools/skills.js')
       const input = z.object(skCreateSchema)

@@ -5,7 +5,7 @@
  * Returns metadata, current version, body, and linked references.
  * Delegates to POST /api/mcp/documents (action: kb_get).
  *
- * ADR-0001 spec: kb_get(entity_type, entity_id, render_mode)
+ * Spec: kb_get(entity_type, entity_id, render_mode)
  */
 
 import { z } from 'zod'

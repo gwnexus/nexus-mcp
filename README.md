@@ -72,7 +72,7 @@ Supabase (PostgreSQL + RLS)
 | **Skills** | `sk_list`, `sk_get`, `sk_create`, `sk_update`, `sk_activate`, `sk_assign`, `sk_unassign`, `sk_export` |
 | **Directives** | `pd_list`, `pd_get`, `pd_create`, `pd_update`, `pd_delete`, `pd_toggle`, `directive_export` |
 
-#### Directives: short binding rules (ADR-0125)
+#### Directives: short binding rules
 
 A directive is one short binding rule. `pd_list` returns the effective list per
 project, and every entry carries a `source`:
@@ -107,7 +107,7 @@ Fields for `pd_create` / `pd_update`:
 { "template_slug": "<catalog-slug>" }
 ```
 
-#### Skills: description and invocation (ADR-0124)
+#### Skills: description and invocation
 
 `sk_create` requires `description` (1 to 500 characters, not blank): one line
 saying what the skill does and when to use it. Agents pick skills by it.
@@ -161,7 +161,7 @@ from a server fault.
 
 Requires Node.js 22 or later.
 
-The maintainers' [Devbox](https://www.jetify.com/devbox) environment (`devbox.json`, `scripts/devbox/`) is provisioned per workspace and is not part of this repository. All development tasks run with plain npm:
+All development tasks run with plain npm:
 
 ```bash
 npm install

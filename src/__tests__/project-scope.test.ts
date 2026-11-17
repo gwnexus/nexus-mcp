@@ -86,7 +86,7 @@ describe('withProjectFallback', () => {
   it('injects the env fallback when the project_id key is entirely absent from args', async () => {
     // Real MCP clients typically omit optional parameters entirely rather
     // than sending them as `undefined` -- this is the common case that must
-    // still trigger the fallback (see nexus-app dispatch 5f5aa27c).
+    // still trigger the fallback.
     const handler = async (args: Record<string, unknown>) => args
     const wrapped = withProjectFallback(handler)
 

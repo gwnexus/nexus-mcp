@@ -10,15 +10,6 @@ node_modules/
 .env.*
 !.env.example
 
-# Devbox local state
-.devbox/
-
-# Taskmaster (local AI task state)
-.taskmaster/
-
-# RTK filter state (local only)
-.rtk/
-
 # Editor
 .idea/
 .vscode/
@@ -27,6 +18,3 @@ node_modules/
 # OS
 .DS_Store
 Thumbs.db
-
-# Nexus local credentials
-.nexus/credentials.toml

@@ -1,5 +1,5 @@
 /**
- * Tests for Nexus Dispatch tools (ADR-0052).
+ * Tests for Nexus Dispatch tools.
  * Covers all 14 dispatch_* tools + legacy vl_* alias wrappers.
  */
 

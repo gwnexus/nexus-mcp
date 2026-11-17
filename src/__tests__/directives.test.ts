@@ -1,5 +1,5 @@
 /**
- * Tests for the project directive tools (ADR-0125 short directive rules).
+ * Tests for the project directive tools (short directive rules).
  *
  * Covers:
  *   - pd_create / pd_update input schemas: rule length, level + category enums,
@@ -63,7 +63,7 @@ describe('pd_create / pd_update schemas', () => {
     expect(createInput.safeParse({ rule: 'r', rationale: 'x'.repeat(2001) }).success).toBe(false)
   })
 
-  it('restricts category to the ADR-0125 enum (no legacy general)', () => {
+  it('restricts category to the directive category enum (no legacy general)', () => {
     expect(DIRECTIVE_CATEGORIES).toEqual([
       'commits', 'language', 'docs', 'security', 'workflow', 'operations', 'communication',
     ])
